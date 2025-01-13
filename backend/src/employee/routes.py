@@ -85,3 +85,12 @@ async def delete_employee(
     """Delete an employee"""
     await employee_service.delete_employee(employee_id, session)
     return {"message": "Employee deleted successfully"}
+
+@employee_router.get("/count", status_code=status.HTTP_200_OK)
+async def get_employee_count(
+    session: AsyncSession = Depends(get_session),
+    _: dict = Depends(AccessTokenBearer())
+):
+    """Get total number of employees"""
+    count = await employee_service.get_count(session)
+    return {"count": count}

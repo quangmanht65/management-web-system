@@ -90,3 +90,9 @@ class EmployeeService:
         
         await session.delete(employee)
         await session.commit()
+
+    async def get_count(self, session: AsyncSession) -> int:
+        """Get total number of employees"""
+        result = await session.execute(select(Employee))
+        employees = result.scalars().all()
+        return len(employees)

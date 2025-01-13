@@ -49,6 +49,19 @@ class EmployeeNotFound(Exception):
     """Employee not found"""
     pass
 
+class DepartmentNotFound(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Department not found"
+        )
+
+class DepartmentAlreadyExists(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Department already exists"
+        )
 
 def create_exception_handler(
     status_code: int, initial_detail: Any
