@@ -5,11 +5,11 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.auth.service import CustomerService
-from src.auth.utils import create_access_token, create_refresh_token, verify_password
-from src.auth.schemas import CustomerCreateModel, LoginModel
-from src.db.main import get_session
-from src.errors import InvalidCredentials
+from auth.service import CustomerService
+from auth.utils import create_access_token, create_refresh_token, verify_password
+from auth.schemas import CustomerCreateModel, LoginModel
+from db.main import get_session
+from errors import InvalidCredentials
 auth_router = APIRouter()
 customer_service = CustomerService()
 

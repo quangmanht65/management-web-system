@@ -16,6 +16,8 @@ pydantic-settings = "^2.7.1"
 sqlmodel = "^0.0.22"
 itsdangerous = "^2.2.0"
 pyjwt = "^2.10.1"
+alembic = "^1.14.0"
+asyncmy = "^0.2.10"
 
 
 [build-system]

@@ -2,8 +2,8 @@ import uuid
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from src.db.models import User
-from src.auth.utils import generate_password_hash
+from db.models import User
+from auth.utils import generate_password_hash
 class UserService:
     async def get_user_by_username(self, username: str, session: AsyncSession) -> User:
         statement = select(User).where(User.username == username)
