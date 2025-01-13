@@ -10,7 +10,7 @@ from auth.utils import create_access_token, verify_password, create_url_safe_tok
 from auth.schemas import UserCreateModel, LoginModel, MailModel
 from db.main import get_session
 from errors import InvalidCredentials, UserAlreadyExists, UserNotFound, InvalidToken
-from dependencies import RefreshTokenBearer, AccessTokenBearer
+from .dependencies import RefreshTokenBearer, AccessTokenBearer
 from config import Config
 
 auth_router = APIRouter()

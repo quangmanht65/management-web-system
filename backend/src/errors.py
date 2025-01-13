@@ -1,7 +1,7 @@
 from typing import Any, Callable
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, HTTPException
 from mysql.connector import Error
 
 class UserException(Exception):
@@ -32,6 +32,23 @@ class RefreshTokenRequired(UserException):
 class AccessTokenRequired(UserException):
     """Access token is required"""
     pass
+
+class EmployeeAlreadyExists(Exception):
+    """Employee with this ID already exists"""
+    pass
+
+class InsufficientPermission(Exception):
+    """Insufficient permission"""
+    pass
+
+class AccountNotVerified(Exception):
+    """Account not verified"""
+    pass
+
+class EmployeeNotFound(Exception):
+    """Employee not found"""
+    pass
+
 
 def create_exception_handler(
     status_code: int, initial_detail: Any

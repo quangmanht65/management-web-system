@@ -4,6 +4,7 @@ from db.main import init_db
 from middleware import register_middleware
 from errors import register_all_errors
 from contextlib import asynccontextmanager
+from employee.routes import employee_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -44,9 +45,8 @@ register_all_errors(app)
 
 app.include_router(auth_router, prefix=f"{version_prefix}/auth", tags=["auth"])
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+app.include_router(employee_router, prefix=f"{version_prefix}/employee", tags=["employee"])
+
 
 if __name__ == "__main__":
     import uvicorn

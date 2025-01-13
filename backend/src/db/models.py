@@ -1,6 +1,6 @@
 import uuid
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, List
 import sqlalchemy.dialects.mysql as mysql
 from sqlmodel import Field, Relationship, SQLModel, Column
 from enum import Enum
@@ -33,73 +33,83 @@ class User(SQLModel, table=True):
     def __repr__(self):
         return f"<User {self.username}>"
 
+class Gender(str, Enum):
+    MALE = "Male"
+    FEMALE = "Female"
+    OTHER = "Other"
 
+class MaritalStatus(str, Enum):
+    SINGLE = "Single"
+    MARRIED = "Married"
+    DIVORCED = "Divorced"
+    WIDOWED = "Widowed"
 
-# class Position(SQLModel, table=True):
-#     __tablename__ = "hrm_position"
+class Department(SQLModel, table=True):
+    __tablename__ = "departments"
     
-#     PositionID: str = Field(primary_key=True)
-#     PositionName: str
-
-# class WorkingTime(SQLModel, table=True):
-#     __tablename__ = "hrm_workingtime"
+    id: int = Field(default=None, primary_key=True)
+    department_code: str = Field(
+        sa_column=Column(mysql.VARCHAR(8), unique=True, index=True)
+    )
+    name: str = Field(sa_column=Column(mysql.VARCHAR(50)))
     
-#     id: str = Field(primary_key=True)
-#     EmployeeID: str = Field(foreign_key="hrm_employee.EmployeeID") 
-#     PositionID: str
-#     StartDate: datetime
-#     EndDate: datetime
-#     IsActive: str
+    # Relationships
+    employees: List["Employee"] = Relationship(back_populates="department")
 
-# class Education(SQLModel, table=True):
-#     __tablename__ = "hrm_education"
+class Position(SQLModel, table=True):
+    __tablename__ = "positions"
     
-#     EducationID: str = Field(primary_key=True)
-#     EducationName: str
-#     Major: str
+    id: int = Field(default=None, primary_key=True)
+    position_code: str = Field(
+        sa_column=Column(mysql.VARCHAR(8), unique=True, index=True)
+    )
+    title: str = Field(sa_column=Column(mysql.VARCHAR(50)))
+    
+    # Relationships
+    employees: List["Employee"] = Relationship(back_populates="position")
 
-# class Department(SQLModel, table=True):
-#     __tablename__ = "hrm_department"
+class Employee(SQLModel, table=True):
+    __tablename__ = "employees"
     
-#     DepartmentID: str = Field(primary_key=True)
-#     DepartmentName: str
-#     Address: str
-#     Phone: str
-#     ManagerID: str
+    id: int = Field(default=None, primary_key=True)
+    employee_code: str = Field(
+        sa_column=Column(mysql.VARCHAR(8), unique=True, index=True)
+    )
+    position_id: int = Field(foreign_key="positions.id")
+    department_id: int = Field(foreign_key="departments.id")
+    salary: float = Field(sa_column=Column(mysql.DECIMAL(12,2)))
+    gender: Gender = Field(default=Gender.MALE)
+    contract_id: str = Field(sa_column=Column(mysql.VARCHAR(8)))
+    full_name: str = Field(sa_column=Column(mysql.VARCHAR(50)))
+    birth_date: date
+    birth_place: str = Field(sa_column=Column(mysql.VARCHAR(100)))
+    id_number: str = Field(sa_column=Column(mysql.VARCHAR(20)))
+    phone: str = Field(sa_column=Column(mysql.VARCHAR(15)))
+    address: str = Field(sa_column=Column(mysql.VARCHAR(250)))
+    email: str = Field(sa_column=Column(mysql.VARCHAR(50)))
+    marital_status: MaritalStatus = Field(default=MaritalStatus.SINGLE)
+    ethnicity: Optional[str] = Field(
+        sa_column=Column(mysql.VARCHAR(10), default="Kinh")
+    )
+    education_level_id: Optional[str] = Field(
+        sa_column=Column(mysql.VARCHAR(8), nullable=True)
+    )
+    id_card_date: Optional[date] = Field(default=None)
+    id_card_place: Optional[str] = Field(
+        sa_column=Column(mysql.VARCHAR(50), nullable=True)
+    )
+    health_insurance_number: str = Field(sa_column=Column(mysql.VARCHAR(15)))
+    social_insurance_number: str = Field(sa_column=Column(mysql.VARCHAR(15)))
+    profile_image_path: str = Field(
+        sa_column=Column(mysql.VARCHAR(40), default="none_image_profile")
+    )
 
-# class Employee(SQLModel, table=True):
-#     __tablename__ = "hrm_employee"
-    
-#     EmployeeID: str = Field(primary_key=True)
-#     PositionID: str
-#     DepartmentID: str
-#     Salary: float
-#     Gender: str
-#     IDNumber: str
-#     FullName: str
-#     DateOfBirth: date
-#     PlaceOfBirth: str
-#     IDCard: str
-#     Phone: str
-#     Address: str
-#     Email: str
-#     MaritalStatus: str
-#     Ethnicity: str
-#     EducationID: str = Field(foreign_key="hrm_education.EducationID")
-#     IDCardDate: date
-#     IDCardPlace: str
-#     HealthInsurance: str
-#     SocialInsurance: str
-#     ProfileImageID: Optional[str]
+    # Relationships
+    position: Position = Relationship(back_populates="employees")
+    department: Department = Relationship(back_populates="employees")
 
-# class Salary(SQLModel, table=True):
-#     __tablename__ = "hrm_salary"
-    
-#     EmployeeID: str = Field(primary_key=True)
-#     Year: int
-#     Month: int
-#     BaseSalary: float
-#     WorkingSalary: float
-#     Bonus: float
-#     Deduction: float
-#     TotalAmount: float
+    class Config:
+        arbitrary_types_allowed = True
+
+    def __repr__(self):
+        return f"<Employee {self.full_name}>"

@@ -10,7 +10,7 @@ python = "^3.10.15"
 fastapi = "^0.115.6"
 uvicorn = {extras = ["standard"], version = "^0.34.0"}
 sqlalchemy = "^2.0.37"
-pydantic = "^2.10.5"
+pydantic = {extras = ["email"], version = "^2.10.5"}
 mysql-connector-python = "^9.1.0"
 pydantic-settings = "^2.7.1"
 sqlmodel = "^0.0.22"

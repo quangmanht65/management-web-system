@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 
 from fastapi import Depends, Request, status
 from fastapi.exceptions import HTTPException
@@ -9,14 +9,18 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from db.main import get_session
 from db.models import User
 
-from service import UserService
-from utils import decode_token
+from .service import UserService
+from .utils import decode_token
 from errors import (
     UserNotFound,
     InvalidCredentials,
     UserAlreadyExists,
     RefreshTokenRequired,
     AccessTokenRequired,
+    InsufficientPermission,
+    AccountNotVerified,
+    EmployeeNotFound,
+    EmployeeAlreadyExists
 )
 
 user_service = UserService()
@@ -57,3 +61,26 @@ class RefreshTokenBearer(TokenBearer):
         if token_data and not token_data["refresh"]:
             raise RefreshTokenRequired()
         
+async def get_current_user(
+    token_details: dict = Depends(AccessTokenBearer()),
+    session: AsyncSession = Depends(get_session),
+) -> User:
+    username = token_details.get("username")
+
+    user = await user_service.get_user_by_username(username, session)
+
+    return user
+
+        
+class RoleChecker:
+    def __init__(self, allowed_roles: List[str]) -> None:
+        self.allowed_roles = allowed_roles
+
+    def __call__(self, current_user: User = Depends(get_current_user)) -> Any:
+        if not current_user.is_verified:
+            raise AccountNotVerified()
+        
+        if current_user.role in self.allowed_roles:
+            return True
+        
+        raise InsufficientPermission()
