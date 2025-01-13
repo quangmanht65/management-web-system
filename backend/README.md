@@ -22,10 +22,11 @@ alembic upgrade head
 ```
 
 ## Running the Application
+```bash
+bash bin/unvicorn-start.sh
+```
 
-
-
-The API will be available at http://localhost:2002
+The API will be available at http://localhost:8000
 
 ## API Documentation
 - Swagger UI: http://localhost:2002/api/v1/docs
