@@ -13,7 +13,7 @@ class User(SQLModel, table=True):
     __tablename__ = "users"
 
     uid: str = Field(
-        sa_column=Column(mysql.VARCHAR(36), nullable=False, primary_key=True)
+        sa_column=Column(mysql.VARCHAR(36), nullable=False, primary_key=True, default=lambda: str(uuid.uuid4()))
     )
 
     username: str
@@ -22,6 +22,7 @@ class User(SQLModel, table=True):
         exclude=True
     )
     role: UserRole = Field(default=UserRole.USER)
+    is_verified: bool = Field(default=False)
     created_at: datetime = Field(
         sa_column=Column(mysql.TIMESTAMP, default=datetime.now())   
     )

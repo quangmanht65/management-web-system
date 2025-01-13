@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-# from auth.routes import auth_router
+from auth.routes import auth_router
 from db.main import init_db
 from middleware import register_middleware
 from errors import register_all_errors
@@ -42,7 +42,7 @@ register_middleware(app)
 
 register_all_errors(app)
 
-# app.include_router(auth_router, prefix=f"{version_prefix}/auth", tags=["auth"])
+app.include_router(auth_router, prefix=f"{version_prefix}/auth", tags=["auth"])
 
 @app.get("/")
 async def root():

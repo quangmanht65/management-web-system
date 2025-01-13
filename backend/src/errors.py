@@ -12,9 +12,25 @@ class UserNotFound(UserException):
     """User not found"""
     pass
 
+class UserAlreadyExists(UserException):
+    """User already exists"""
+    pass
+
 class InvalidCredentials(UserException):
     """User has provided wrong email or password during log in."""
 
+    pass
+
+class InvalidToken(UserException):
+    """Invalid token"""
+    pass
+
+class RefreshTokenRequired(UserException):
+    """Refresh token is required"""
+    pass
+
+class AccessTokenRequired(UserException):
+    """Access token is required"""
     pass
 
 def create_exception_handler(
