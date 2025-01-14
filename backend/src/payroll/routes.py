@@ -21,7 +21,8 @@ async def create_payroll(
     """Create a new payroll record"""
     try:
         user_id = token_details.get("user")["uid"]
-        return await payroll_service.create_payroll(payroll_data, user_id, session)
+        payroll_dict = await payroll_service.create_payroll(payroll_data, user_id, session)
+        return PayrollResponse(**payroll_dict)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -35,7 +36,8 @@ async def get_all_payrolls(
 ):
     """Get all payroll records"""
     try:
-        return await payroll_service.get_all_payrolls(session)
+        user_id = token_details.get("user")["uid"]
+        return await payroll_service.get_all_payrolls(session, user_id)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

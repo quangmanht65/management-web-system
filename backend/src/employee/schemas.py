@@ -53,6 +53,14 @@ class ContractBase(BaseModel):
 
 class ContractCreate(ContractBase):
     employee_id: int = Field(..., gt=0)
+    employee_name: str = Field(..., min_length=1, max_length=50)
+    start_date: date
+    end_date: Optional[date] = None
+    status: str = Field(..., max_length=20)
+    salary: float = Field(..., gt=0)
+    notes: Optional[str] = Field(default=None, max_length=500)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = Field(default=None)
 
 class ContractUpdate(ContractBase):
     pass
@@ -63,6 +71,16 @@ class ContractResponse(ContractBase):
     employee_name: Optional[str]
     created_at: datetime
     updated_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True 
+
+class PositionRead(BaseModel):
+    id: int
+    position_code: str
+    name: str
+    description: Optional[str] = None
+    employee_count: int = 0
 
     class Config:
         from_attributes = True 

@@ -87,6 +87,11 @@ class PayrollNotFound(Exception):
         self.message = "Payroll record not found"
         super().__init__(self.message)
 
+class AttendanceNotFound(Exception):
+    def __init__(self):
+        self.message = "Attendance record not found"
+        super().__init__(self.message)
+
 def create_exception_handler(
     status_code: int, initial_detail: Any
 ) -> Callable[[Request, Exception], JSONResponse]:

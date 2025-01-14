@@ -4,6 +4,7 @@ from typing import List
 from db.models import Department, Employee
 from department.schemas import DepartmentCreate, DepartmentUpdateModel
 from errors import DepartmentNotFound
+from fastapi import HTTPException, status
 
 class DepartmentService:
     async def create_department(self, department_data: DepartmentCreate, user_id: str, session: AsyncSession) -> Department:
@@ -17,39 +18,32 @@ class DepartmentService:
         await session.refresh(department)
         return department
     
-    async def get_all_departments(self, session: AsyncSession) -> List[Department]:
-        """Get all departments with employee count"""
-        # Create a subquery to count employees per department
-        employee_count = (
-            select(
-                Employee.id,
-                func.count(Employee.id).label('employee_count')
+    async def get_all_departments(self, session: AsyncSession) -> List[dict]:
+        """Get all departments"""
+        try:
+            statement = (
+                select(
+                    Department,
+                    func.count(Employee.id).label('employee_count')
+                )
+                .outerjoin(Employee, Department.id == Employee.department_id)
+                .group_by(Department.id)
             )
-            .group_by(Employee.id)
-            .subquery()
-        )
-
-        # Join with departments to get counts
-        statement = (
-            select(
-                Department,
-                func.coalesce(employee_count.c.employee_count, 0).label('employee_count')
+            result = await session.execute(statement)
+            departments = []
+            for dept, count in result:
+                dept_dict = dept.__dict__
+                if '_sa_instance_state' in dept_dict:
+                    del dept_dict['_sa_instance_state']
+                dept_dict['employee_count'] = count
+                departments.append(dept_dict)
+            return departments
+        except Exception as e:
+            print(f"Error getting departments: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to fetch departments"
             )
-            .outerjoin(
-                employee_count,
-                Department.id == employee_count.c.id
-            )
-        )
-
-        result = await session.execute(statement)
-        departments = []
-        
-        for dept, count in result:
-            dept_dict = dept.dict()
-            dept_dict['employee_count'] = count
-            departments.append(dept_dict)
-            
-        return departments
 
     async def get_department_by_id(self, department_id: str, session: AsyncSession) -> Department:
         """Get department by ID"""

@@ -11,20 +11,36 @@ from errors import PayrollNotFound, EmployeeNotFound
 class PayrollService:
     async def create_payroll(self, payroll_data: PayrollCreate, user_id: str, session: AsyncSession) -> Payroll:
         """Create a new payroll record"""
-        # Verify employee exists
-        employee_exists = await session.get(Employee, payroll_data.employee_id)
-        if not employee_exists:
-            raise EmployeeNotFound()
-        
-        payroll_dict = payroll_data.model_dump()
-        new_payroll = Payroll(**payroll_dict)
-        
-        session.add(new_payroll)
-        await session.commit()
-        await session.refresh(new_payroll)
-        return new_payroll
+        try:
+            # Verify employee exists
+            employee = await session.get(Employee, payroll_data.employee_id)
+            if not employee:
+                raise EmployeeNotFound()
 
-    async def get_all_payrolls(self, session: AsyncSession) -> List[dict]:
+            payroll_dict = payroll_data.model_dump()
+            new_payroll = Payroll(**payroll_dict)
+            
+            session.add(new_payroll)
+            await session.commit()
+            await session.refresh(new_payroll)
+
+            # Convert to dict and add required fields
+            result_dict = new_payroll.__dict__
+            if '_sa_instance_state' in result_dict:
+                del result_dict['_sa_instance_state']
+            result_dict['employee_name'] = employee.full_name
+            result_dict['net_salary'] = new_payroll.base_salary + new_payroll.allowance - new_payroll.deduction
+            
+            return result_dict
+
+        except Exception as e:
+            print(f"Error creating payroll: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to create payroll record"
+            )
+
+    async def get_all_payrolls(self, session: AsyncSession, user_id: str) -> List[dict]:
         """Get all payroll records with employee names"""
         try:
             statement = (
@@ -34,6 +50,8 @@ class PayrollService:
                 )
                 .join(Employee, Payroll.employee_id == Employee.id)
             )
+
+            print("statement: ", statement)
             
             result = await session.execute(statement)
             payrolls = []

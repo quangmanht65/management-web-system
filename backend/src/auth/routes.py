@@ -12,9 +12,12 @@ from db.main import get_session
 from errors import InvalidCredentials, UserAlreadyExists, UserNotFound, InvalidToken
 from .dependencies import RefreshTokenBearer, AccessTokenBearer
 from config import Config
+from auth.dependencies import RoleChecker
 
 auth_router = APIRouter()
 user_service = UserService()
+role_checker = Depends(RoleChecker(["admin"]))
+access_token_bearer = AccessTokenBearer()
 
 REFRESH_TOKEN_EXPIRY = 2
 
@@ -136,3 +139,35 @@ async def revoke_token(token_details: dict = Depends(AccessTokenBearer)):
         content={"message": "Logged Out successfully"},
         status_code=status.HTTP_200_OK,
     )
+
+@auth_router.get("/users/", status_code=status.HTTP_200_OK, dependencies=[role_checker])
+async def get_all_users(
+    session: AsyncSession = Depends(get_session),
+    _: dict = Depends(access_token_bearer),
+):
+    """Get all user accounts"""
+    users = await user_service.get_all_users(session)
+    return users
+
+@auth_router.patch("/users/{user_id}/verify", status_code=status.HTTP_200_OK, dependencies=[role_checker])
+async def toggle_user_verify(
+    user_id: str,
+    session: AsyncSession = Depends(get_session),
+    _: dict = Depends(access_token_bearer),
+):
+    """Toggle user verification status"""
+    try:
+        user = await user_service.get_user_by_id(user_id, session)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        await user_service.update_user(user, {"is_verified": not user.is_verified}, session)
+        return {"message": "User verification status updated successfully"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )

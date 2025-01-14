@@ -1,13 +1,21 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.responses import JSONResponse
-from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlmodel import select, Session as AsyncSession
 from typing import List
+from sqlalchemy import func
 
 from db.main import get_session
-from employee.schemas import EmployeeCreate, EmployeeUpdateModel, ContractCreate, ContractUpdate, ContractResponse
+from employee.schemas import (
+    EmployeeCreate, 
+    EmployeeUpdateModel, 
+    ContractCreate, 
+    ContractUpdate, 
+    ContractResponse,
+    PositionRead
+)
 from employee.service import EmployeeService
 from errors import EmployeeAlreadyExists, EmployeeNotFound
-from db.models import Employee
+from db.models import Employee, Position
 from auth.dependencies import AccessTokenBearer, RoleChecker
 
 employee_router = APIRouter()
@@ -87,7 +95,8 @@ async def create_contract(
 ):
     """Create a new contract for an employee"""
     user_id = token_details.get("user")["uid"]
-    return await employee_service.create_contract(contract_data, user_id, session)
+    contract_dict = await employee_service.create_contract(contract_data, user_id, session)
+    return ContractResponse(**contract_dict)
 
 @employee_router.get("/contracts/{employee_id}", response_model=List[ContractResponse])
 async def get_employee_contracts(
@@ -138,3 +147,38 @@ async def get_all_contracts(
 ):
     """Get all contracts"""
     return await employee_service.get_all_contracts(session)
+
+@employee_router.get("/positions/", response_model=List[PositionRead])
+async def get_positions(
+    session: AsyncSession = Depends(get_session),
+    _: dict = Depends(access_token_bearer)
+):
+    """Get all positions with employee count"""
+    try:
+        statement = select(
+            Position,
+            func.count(Employee.id).label('employee_count')
+        ).outerjoin(
+            Employee, 
+            Position.id == Employee.position_id
+        ).group_by(Position.id)
+        
+        result = await session.execute(statement)
+        positions = []
+        
+        for position, count in result:
+            position_dict = {
+                "id": position.id,
+                "position_code": position.position_code,
+                "name": position.title,
+                "description": position.description if hasattr(position, 'description') else None,
+                "employee_count": count
+            }
+            positions.append(position_dict)
+            
+        return positions
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )

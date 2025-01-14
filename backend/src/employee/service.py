@@ -2,6 +2,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from typing import List, Optional
 from datetime import datetime
+from fastapi import HTTPException, status
 
 from db.models import Employee, Position, Department, Contract
 from employee.schemas import EmployeeCreate, EmployeeUpdateModel, ContractCreate, ContractUpdate
@@ -93,18 +94,35 @@ class EmployeeService:
         employees = result.scalars().all()
         return {"count": len(list(employees))}
 
-    async def create_contract(self, contract_data: ContractCreate, user_id: str, session: AsyncSession) -> Contract:
+    async def create_contract(self, contract_data: ContractCreate, user_id: str, session: AsyncSession) -> dict:
         """Create a new contract for an employee"""
-        
-        contract_data_dict = contract_data.model_dump()
-        new_contract = Contract(**contract_data_dict)
+        try:
+            # Verify employee exists
+            employee = await session.get(Employee, contract_data.employee_id)
+            if not employee:
+                raise EmployeeNotFound()
 
-        print("new_contract: ", new_contract)
+            contract_data_dict = contract_data.model_dump()
+            new_contract = Contract(**contract_data_dict)
+            
+            session.add(new_contract)
+            await session.commit()
+            await session.refresh(new_contract)
 
-        session.add(new_contract)
-        await session.commit()
-        await session.refresh(new_contract)
-        return new_contract
+            # Convert to dict and add employee name
+            result_dict = new_contract.__dict__
+            if '_sa_instance_state' in result_dict:
+                del result_dict['_sa_instance_state']
+            result_dict['employee_name'] = employee.full_name
+            
+            return result_dict
+
+        except Exception as e:
+            print(f"Error creating contract: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to create contract"
+            )
 
     async def get_employee_contracts(self, employee_id: str, session: AsyncSession) -> List[Contract]:
         """Get all contracts for an employee"""
@@ -159,6 +177,8 @@ class EmployeeService:
         contracts = []
         for contract, employee_name in result:
             contract_dict = contract.__dict__
+            if '_sa_instance_state' in contract_dict:
+                del contract_dict['_sa_instance_state']
             contract_dict['employee_name'] = employee_name or 'N/A'
             contracts.append(contract_dict)
         return contracts

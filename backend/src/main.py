@@ -9,10 +9,11 @@ from employee.routes import employee_router
 from department.routes import department_router
 from position.routes import position_router
 from education.routes import education_router
-from errors import PayrollNotFound
+from errors import PayrollNotFound, AttendanceNotFound
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from payroll.routes import payroll_router
+from attendance.routes import attendance_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -71,10 +72,19 @@ app.include_router(education_router, prefix=f"{version_prefix}/education", tags=
 
 app.include_router(payroll_router, prefix=f"{version_prefix}/payroll", tags=["payroll"])
 
+app.include_router(attendance_router, prefix=f"{version_prefix}/attendance", tags=["attendance"])
+
 @app.exception_handler(PayrollNotFound)
 async def payroll_not_found_handler(request: Request, exc: PayrollNotFound):
     return JSONResponse(
         status_code=404,
         content={"message": "Payroll record not found"}
+    )
+
+@app.exception_handler(AttendanceNotFound)
+async def attendance_not_found_handler(request: Request, exc: AttendanceNotFound):
+    return JSONResponse(
+        status_code=404,
+        content={"message": "Attendance record not found"}
     )
 

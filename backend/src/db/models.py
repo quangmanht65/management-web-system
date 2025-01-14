@@ -59,11 +59,10 @@ class Department(SQLModel, table=True):
 class Position(SQLModel, table=True):
     __tablename__ = "positions"
     
-    id: int = Field(default=None, primary_key=True)
-    position_code: str = Field(
-        sa_column=Column(mysql.VARCHAR(8), unique=True, index=True)
-    )
-    title: str = Field(sa_column=Column(mysql.VARCHAR(50)))
+    id: Optional[int] = Field(default=None, primary_key=True)
+    position_code: str = Field(..., max_length=10)
+    title: str = Field(..., max_length=100)
+    description: Optional[str] = Field(default=None)
     
     # Relationships
     employees: List["Employee"] = Relationship(back_populates="position")
@@ -109,6 +108,8 @@ class Employee(SQLModel, table=True):
     department: Department = Relationship(back_populates="employees")
     contracts: List["Contract"] = Relationship(back_populates="employee")
     payrolls: List["Payroll"] = Relationship(back_populates="employee")
+    work_points: List["WorkPoint"] = Relationship(back_populates="employee")
+    attendance: List["Attendance"] = Relationship(back_populates="employee")
 
     class Config:
         arbitrary_types_allowed = True
@@ -138,8 +139,10 @@ class Contract(SQLModel, table=True):
     status: str = Field(max_length=20)
     salary: float
     notes: Optional[str] = Field(default=None, max_length=500)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: Optional[datetime] = None
+    created_at: datetime = Field(sa_column=Column(mysql.TIMESTAMP, default=datetime.utcnow))
+    updated_at: Optional[datetime] = Field(
+        sa_column=Column(mysql.TIMESTAMP, nullable=True, onupdate=datetime.utcnow)
+    )
 
     employee: Optional[Employee] = Relationship(back_populates="contracts")
 
@@ -153,7 +156,58 @@ class Payroll(SQLModel, table=True):
     allowance: float = Field(default=0)
     deduction: float = Field(default=0)
     notes: Optional[str] = Field(default=None)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: Optional[datetime] = Field(default=None)
+    created_at: datetime = Field(
+        sa_column=Column(mysql.TIMESTAMP, default=datetime.utcnow)
+    )
+    updated_at: Optional[datetime] = Field(
+        sa_column=Column(mysql.TIMESTAMP, nullable=True, onupdate=datetime.utcnow)
+    )
 
     employee: Optional[Employee] = Relationship(back_populates="payrolls")
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def __repr__(self):
+        return f"<Payroll {self.employee_id} {self.month}>"
+
+    @property
+    def net_salary(self) -> float:
+        """Calculate net salary"""
+        return self.base_salary + self.allowance - self.deduction
+
+class WorkPoint(SQLModel, table=True):
+    __tablename__ = "work_points"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    employee_id: int = Field(foreign_key="employees.id", index=True)
+    month: int = Field(..., ge=1, le=12)
+    year: int = Field(...)
+    day: int = Field(..., ge=1, le=31)
+    points: float = Field(default=1.0)  # Default full day
+    notes: Optional[str] = Field(default=None)
+    created_at: datetime = Field(
+        sa_column=Column(mysql.TIMESTAMP, default=datetime.utcnow)
+    )
+    updated_at: Optional[datetime] = Field(
+        sa_column=Column(mysql.TIMESTAMP, nullable=True, onupdate=datetime.utcnow)
+    )
+
+    employee: Optional[Employee] = Relationship(back_populates="work_points")
+
+class Attendance(SQLModel, table=True):
+    __tablename__ = "attendance"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    employee_id: int = Field(foreign_key="employees.id", index=True)
+    date: date
+    status: str = Field(max_length=20)  # present, absent, late
+    notes: Optional[str] = Field(default=None)
+    created_at: datetime = Field(
+        sa_column=Column(mysql.TIMESTAMP, default=datetime.utcnow)
+    )
+    updated_at: Optional[datetime] = Field(
+        sa_column=Column(mysql.TIMESTAMP, nullable=True, onupdate=datetime.utcnow)
+    )
+
+    employee: Optional["Employee"] = Relationship(back_populates="attendance")
