@@ -10,7 +10,8 @@ import Attendance from './pages/Attendance'
 import WorkingTime from './pages/WorkingTime'
 import Departments from './pages/Departments'
 import Settings from './pages/Settings'
-import { Toaster } from 'react-hot-toast'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
@@ -29,7 +30,17 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
-      <Toaster position="top-right" />
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </BrowserRouter>
   )
 }
