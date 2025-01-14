@@ -1,5 +1,5 @@
-from datetime import date
-from typing import Optional
+from datetime import date, datetime
+from typing import Optional, List
 from pydantic import BaseModel, EmailStr, Field
 from db.models import Gender, MaritalStatus
 
@@ -42,3 +42,27 @@ class EmployeeUpdateModel(BaseModel):
     HealthInsurance: str = Field(..., max_length=15)
     SocialInsurance: str = Field(..., max_length=15)
     ID_profile_image: str = Field(default="none_image_profile") 
+
+class ContractBase(BaseModel):
+    contract_type: str = Field(..., max_length=50)
+    start_date: date
+    end_date: Optional[date] = None
+    status: str = Field(..., max_length=20)
+    salary: float = Field(..., gt=0)
+    notes: Optional[str] = Field(default=None, max_length=500)
+
+class ContractCreate(ContractBase):
+    employee_id: int = Field(..., gt=0)
+
+class ContractUpdate(ContractBase):
+    pass
+
+class ContractResponse(ContractBase):
+    id: int
+    employee_id: int
+    employee_name: Optional[str]
+    created_at: datetime
+    updated_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True 

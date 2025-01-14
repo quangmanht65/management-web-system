@@ -1,10 +1,11 @@
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from typing import List, Optional
+from datetime import datetime
 
-from db.models import Employee, Position, Department
-from employee.schemas import EmployeeCreate, EmployeeUpdateModel
-from errors import EmployeeNotFound
+from db.models import Employee, Position, Department, Contract
+from employee.schemas import EmployeeCreate, EmployeeUpdateModel, ContractCreate, ContractUpdate
+from errors import EmployeeNotFound, ContractNotFound
 
 class EmployeeService:
     async def create_employee(self, employee_data: EmployeeCreate, uid: str, session: AsyncSession) -> Employee:
@@ -91,3 +92,73 @@ class EmployeeService:
         result = await session.execute(select(Employee))
         employees = result.scalars().all()
         return {"count": len(list(employees))}
+
+    async def create_contract(self, contract_data: ContractCreate, user_id: str, session: AsyncSession) -> Contract:
+        """Create a new contract for an employee"""
+        
+        contract_data_dict = contract_data.model_dump()
+        new_contract = Contract(**contract_data_dict)
+
+        print("new_contract: ", new_contract)
+
+        session.add(new_contract)
+        await session.commit()
+        await session.refresh(new_contract)
+        return new_contract
+
+    async def get_employee_contracts(self, employee_id: str, session: AsyncSession) -> List[Contract]:
+        """Get all contracts for an employee"""
+        statement = select(Contract).where(Contract.employee_id == employee_id)
+        result = await session.execute(statement)
+        contracts = result.scalars().all()
+        return list(contracts)
+
+    async def get_contract_by_id(self, contract_id: int, session: AsyncSession) -> Contract:
+        """Get a specific contract by ID"""
+        statement = select(Contract).where(Contract.id == contract_id)
+        result = await session.execute(statement)
+        contract = result.scalar_one_or_none()
+        if not contract:
+            raise ContractNotFound()
+        return contract
+
+    async def update_contract(
+        self, contract_id: int, contract_data: ContractUpdate, session: AsyncSession
+    ) -> Contract:
+        """Update a contract"""
+        contract = await self.get_contract_by_id(contract_id, session)
+        
+        # Update fields
+        for field, value in contract_data.model_dump(exclude_unset=True).items():
+            setattr(contract, field, value)
+        
+        contract.updated_at = datetime.utcnow()
+        session.add(contract)
+        await session.commit()
+        await session.refresh(contract)
+        return contract
+
+    async def delete_contract(self, contract_id: int, session: AsyncSession) -> dict:
+        """Delete a contract"""
+        contract = await self.get_contract_by_id(contract_id, session)
+        
+        await session.delete(contract)
+        await session.commit()
+        return {"message": "Contract deleted successfully"}
+    
+    async def get_all_contracts(self, session: AsyncSession) -> List[Contract]:
+        """Get all contracts"""
+        statement = (
+            select(
+                Contract,
+                Employee.full_name.label('employee_name')
+            )
+            .outerjoin(Employee, Contract.employee_id == Employee.id)
+        )
+        result = await session.execute(statement)
+        contracts = []
+        for contract, employee_name in result:
+            contract_dict = contract.__dict__
+            contract_dict['employee_name'] = employee_name or 'N/A'
+            contracts.append(contract_dict)
+        return contracts

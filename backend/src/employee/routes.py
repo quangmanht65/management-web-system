@@ -4,7 +4,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from typing import List
 
 from db.main import get_session
-from employee.schemas import EmployeeCreate, EmployeeUpdateModel
+from employee.schemas import EmployeeCreate, EmployeeUpdateModel, ContractCreate, ContractUpdate, ContractResponse
 from employee.service import EmployeeService
 from errors import EmployeeAlreadyExists, EmployeeNotFound
 from db.models import Employee
@@ -78,3 +78,63 @@ async def get_employee_count(
     """Get total number of employees"""
     user_id = token_details.get("user")["uid"]
     return await employee_service.get_count(user_id, session)
+
+@employee_router.post("/contracts/", response_model=ContractResponse)
+async def create_contract(
+    contract_data: ContractCreate,
+    session: AsyncSession = Depends(get_session),
+    token_details: dict = Depends(access_token_bearer),
+):
+    """Create a new contract for an employee"""
+    user_id = token_details.get("user")["uid"]
+    return await employee_service.create_contract(contract_data, user_id, session)
+
+@employee_router.get("/contracts/{employee_id}", response_model=List[ContractResponse])
+async def get_employee_contracts(
+    employee_id: str,
+    session: AsyncSession = Depends(get_session),
+    token_details: dict = Depends(access_token_bearer),
+):
+    """Get all contracts for an employee"""
+    user_id = token_details.get("user")["uid"]
+    return await employee_service.get_employee_contracts(employee_id, user_id, session)
+
+@employee_router.get("/contracts/detail/{contract_id}", response_model=ContractResponse)
+async def get_contract(
+    contract_id: int,
+    session: AsyncSession = Depends(get_session),
+    token_details: dict = Depends(access_token_bearer),
+):
+    """Get a specific contract by ID"""
+    user_id = token_details.get("user")["uid"]
+    return await employee_service.get_contract_by_id(contract_id, user_id, session)
+
+@employee_router.put("/contracts/{contract_id}", response_model=ContractResponse)
+async def update_contract(
+    contract_id: int,
+    contract_data: ContractUpdate,
+    session: AsyncSession = Depends(get_session),
+    token_details: dict = Depends(access_token_bearer),
+):
+    """Update a contract"""
+    user_id = token_details.get("user")["uid"]
+    return await employee_service.update_contract(contract_id, contract_data, user_id, session)
+
+@employee_router.delete("/contracts/{contract_id}")
+async def delete_contract(
+    contract_id: int,
+    session: AsyncSession = Depends(get_session),
+    token_details: dict = Depends(access_token_bearer),
+):
+    """Delete a contract"""
+    user_id = token_details.get("user")["uid"]
+    return await employee_service.delete_contract(contract_id, user_id, session)
+
+
+@employee_router.get("/contracts/", response_model=List[ContractResponse])
+async def get_all_contracts(
+    session: AsyncSession = Depends(get_session),
+    token_details: dict = Depends(access_token_bearer),
+):
+    """Get all contracts"""
+    return await employee_service.get_all_contracts(session)

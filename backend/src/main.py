@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from auth.routes import auth_router
 from db.main import init_db
 from middleware import register_middleware
@@ -8,6 +9,10 @@ from employee.routes import employee_router
 from department.routes import department_router
 from position.routes import position_router
 from education.routes import education_router
+from errors import PayrollNotFound
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from payroll.routes import payroll_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -42,6 +47,14 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Your frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 register_middleware(app)
 
 register_all_errors(app)
@@ -55,4 +68,13 @@ app.include_router(department_router, prefix=f"{version_prefix}/department", tag
 app.include_router(position_router, prefix=f"{version_prefix}/position", tags=["position"])
 
 app.include_router(education_router, prefix=f"{version_prefix}/education", tags=["education"])
+
+app.include_router(payroll_router, prefix=f"{version_prefix}/payroll", tags=["payroll"])
+
+@app.exception_handler(PayrollNotFound)
+async def payroll_not_found_handler(request: Request, exc: PayrollNotFound):
+    return JSONResponse(
+        status_code=404,
+        content={"message": "Payroll record not found"}
+    )
 

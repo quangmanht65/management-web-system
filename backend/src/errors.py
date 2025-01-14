@@ -77,6 +77,16 @@ class PositionAlreadyExists(HTTPException):
             detail="Position already exists"
         )
 
+class ContractNotFound(Exception):
+    def __init__(self):
+        self.message = "Contract not found"
+        super().__init__(self.message)
+
+class PayrollNotFound(Exception):
+    def __init__(self):
+        self.message = "Payroll record not found"
+        super().__init__(self.message)
+
 def create_exception_handler(
     status_code: int, initial_detail: Any
 ) -> Callable[[Request, Exception], JSONResponse]:

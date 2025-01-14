@@ -107,6 +107,8 @@ class Employee(SQLModel, table=True):
     # Relationships
     position: Position = Relationship(back_populates="employees")
     department: Department = Relationship(back_populates="employees")
+    contracts: List["Contract"] = Relationship(back_populates="employee")
+    payrolls: List["Payroll"] = Relationship(back_populates="employee")
 
     class Config:
         arbitrary_types_allowed = True
@@ -124,3 +126,34 @@ class Education(SQLModel, table=True):
     major: str
     graduation_year: str
     ranking: str
+
+class Contract(SQLModel, table=True):
+    __tablename__ = "contracts"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    employee_id: int = Field(foreign_key="employees.id")
+    contract_type: str = Field(max_length=50)
+    start_date: date
+    end_date: Optional[date] = None
+    status: str = Field(max_length=20)
+    salary: float
+    notes: Optional[str] = Field(default=None, max_length=500)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+
+    employee: Optional[Employee] = Relationship(back_populates="contracts")
+
+class Payroll(SQLModel, table=True):
+    __tablename__ = "payrolls"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    employee_id: int = Field(foreign_key="employees.id", index=True)
+    month: date
+    base_salary: float
+    allowance: float = Field(default=0)
+    deduction: float = Field(default=0)
+    notes: Optional[str] = Field(default=None)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = Field(default=None)
+
+    employee: Optional[Employee] = Relationship(back_populates="payrolls")
