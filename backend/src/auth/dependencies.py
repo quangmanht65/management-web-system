@@ -65,7 +65,13 @@ async def get_current_user(
     token_details: dict = Depends(AccessTokenBearer()),
     session: AsyncSession = Depends(get_session),
 ) -> User:
-    username = token_details.get("username")
+    
+    print("token_details: ", token_details)
+    print('type(token_details): ', type(token_details))
+
+    username = token_details.get("user")["username"]
+
+    print("username: ", username)
 
     user = await user_service.get_user_by_username(username, session)
 
@@ -76,7 +82,9 @@ class RoleChecker:
     def __init__(self, allowed_roles: List[str]) -> None:
         self.allowed_roles = allowed_roles
 
-    def __call__(self, current_user: User = Depends(get_current_user)) -> Any:
+    def __call__(self, current_user: User = Depends(get_current_user)) -> Any:        
+        print("current_user: ", current_user)
+        print('type(current_user): ', type(current_user))
         if not current_user.is_verified:
             raise AccountNotVerified()
         

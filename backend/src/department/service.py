@@ -1,19 +1,15 @@
-from sqlmodel import select
+from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
 from typing import List
-from db.models import Department
+from db.models import Department, Employee
 from department.schemas import DepartmentCreate, DepartmentUpdateModel
 from errors import DepartmentNotFound
 
 class DepartmentService:
-    async def create_department(self, department_data: DepartmentCreate, session: AsyncSession) -> Department:
+    async def create_department(self, department_data: DepartmentCreate, user_id: str, session: AsyncSession) -> Department:
         """Create a new department"""
         department = Department(
-            DepartmentID=department_data.DepartmentID,
-            DepartmentName=department_data.DepartmentName,
-            Description=department_data.Description,
-            Location=department_data.Location,
-            PhoneNumber=department_data.PhoneNumber
+            **department_data.model_dump()
         )
         
         session.add(department)
@@ -22,14 +18,42 @@ class DepartmentService:
         return department
     
     async def get_all_departments(self, session: AsyncSession) -> List[Department]:
-        """Get all departments"""
-        statement = select(Department)
+        """Get all departments with employee count"""
+        # Create a subquery to count employees per department
+        employee_count = (
+            select(
+                Employee.id,
+                func.count(Employee.id).label('employee_count')
+            )
+            .group_by(Employee.id)
+            .subquery()
+        )
+
+        # Join with departments to get counts
+        statement = (
+            select(
+                Department,
+                func.coalesce(employee_count.c.employee_count, 0).label('employee_count')
+            )
+            .outerjoin(
+                employee_count,
+                Department.id == employee_count.c.id
+            )
+        )
+
         result = await session.execute(statement)
-        return result.scalars().all()
+        departments = []
+        
+        for dept, count in result:
+            dept_dict = dept.dict()
+            dept_dict['employee_count'] = count
+            departments.append(dept_dict)
+            
+        return departments
 
     async def get_department_by_id(self, department_id: str, session: AsyncSession) -> Department:
         """Get department by ID"""
-        statement = select(Department).where(Department.DepartmentID == department_id)
+        statement = select(Department).where(Department.id == department_id)
         result = await session.execute(statement)
         return result.scalar_one_or_none()
 

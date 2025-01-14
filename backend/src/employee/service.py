@@ -1,59 +1,65 @@
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from typing import List
+from typing import List, Optional
 
-from db.models import Employee
+from db.models import Employee, Position, Department
 from employee.schemas import EmployeeCreate, EmployeeUpdateModel
 from errors import EmployeeNotFound
 
 class EmployeeService:
-    async def create_employee(self, employee_data: EmployeeCreate, session: AsyncSession) -> Employee:
+    async def create_employee(self, employee_data: EmployeeCreate, uid: str, session: AsyncSession) -> Employee:
         """Create a new employee"""
-        employee = Employee(
-            EmployeeID=employee_data.EmployeeID,
-            PositionID=employee_data.PositionID,
-            DepartmentID=employee_data.DepartmentID,
-            Salary=employee_data.Salary,
-            Gender=employee_data.Gender,
-            ContractID=employee_data.ContractID,
-            EmployeeName=employee_data.EmployeeName,
-            DateOfBirth=employee_data.DateOfBirth,
-            PlaceOfBirth=employee_data.PlaceOfBirth,
-            IDNumber=employee_data.IDNumber,
-            Phone=employee_data.Phone,
-            Address=employee_data.Address,
-            Email=employee_data.Email,
-            MaritalStatus=employee_data.MaritalStatus,
-            Ethnicity=employee_data.Ethnicity,
-            EducationLevelID=employee_data.EducationLevelID,
-            IDCardDate=employee_data.IDCardDate,
-            IDCardPlace=employee_data.IDCardPlace,
-            HealthInsurance=employee_data.HealthInsurance,
-            SocialInsurance=employee_data.SocialInsurance,
-            ID_profile_image=employee_data.ID_profile_image
+        employee_data_dict = employee_data.model_dump()
+        
+        new_employee = Employee(
+            **employee_data_dict
+        )
+
+        session.add(new_employee)
+        await session.commit()
+        await session.refresh(new_employee)
+        return new_employee
+    
+    async def get_all_employees(self, session: AsyncSession) -> List[dict]:
+        """Get all employees with their position and department"""
+        statement = (
+            select(
+                Employee,
+                Position.title,
+                Department.name,
+            )
+            .outerjoin(Position, Employee.position_id == Position.id)
+            .outerjoin(Department, Employee.department_id == Department.id)
         )
         
-        session.add(employee)
-        await session.commit()
-        await session.refresh(employee)
-        return employee
-    
-    async def get_all_employees(self, session: AsyncSession) -> List[Employee]:
-        """Get all employees"""
-        statement = select(Employee)
         result = await session.execute(statement)
-        return result.scalars().all()
+        employees = []
+        
+        for emp, position_name, dept_name in result:
+            emp_dict = emp.dict()
+            emp_dict.update({
+                'Position': position_name or 'N/A',
+                'Department': dept_name or 'N/A'
+            })
+            employees.append(emp_dict)
+            
+        return employees
 
-    async def get_employee_by_id(self, employee_id: str, session: AsyncSession) -> Employee:
+    async def get_employee_by_id(self, employee_id: str, session: AsyncSession) -> Optional[Employee]:
         """Get employee by ID"""
-        statement = select(Employee).where(Employee.EmployeeID == employee_id)
+        print("employee_id: ", employee_id)
+        statement = select(Employee).where(Employee.id == employee_id)
         result = await session.execute(statement)
-        return result.scalar_one_or_none()
+        employee = result.scalar_one_or_none()
+        if not employee:
+            raise EmployeeNotFound()
+        return employee
 
     async def employee_exists(self, employee_id: str, session: AsyncSession) -> bool:
         """Check if employee exists"""
-        employee = await self.get_employee_by_id(employee_id, session)
-        return employee is not None 
+        statement = select(Employee).where(Employee.id == employee_id)
+        result = await session.execute(statement)
+        return result.scalar_one_or_none() is not None
     
     async def update_employee(self, employee_id: str, employee_data: EmployeeUpdateModel, session: AsyncSession) -> Employee:
         """Update an employee"""
@@ -61,28 +67,16 @@ class EmployeeService:
         if not employee:
             raise EmployeeNotFound()
         
-        employee.EmployeeName = employee_data.EmployeeName
-        employee.DateOfBirth = employee_data.DateOfBirth
-        employee.PlaceOfBirth = employee_data.PlaceOfBirth
-        employee.IDNumber = employee_data.IDNumber
-        employee.Phone = employee_data.Phone
-        employee.Address = employee_data.Address
-        employee.Email = employee_data.Email
-        employee.MaritalStatus = employee_data.MaritalStatus
-        employee.Ethnicity = employee_data.Ethnicity
-        employee.EducationLevelID = employee_data.EducationLevelID
-        employee.IDCardDate = employee_data.IDCardDate
-        employee.IDCardPlace = employee_data.IDCardPlace
-        employee.HealthInsurance = employee_data.HealthInsurance
-        employee.SocialInsurance = employee_data.SocialInsurance
-        employee.ID_profile_image = employee_data.ID_profile_image
+        # Update fields
+        for field, value in employee_data.model_dump(exclude_unset=True).items():
+            setattr(employee, field, value)
 
         session.add(employee)
         await session.commit()
         await session.refresh(employee)
         return employee
     
-    async def delete_employee(self, employee_id: str, session: AsyncSession) -> None:
+    async def delete_employee(self, employee_id: str, session: AsyncSession) -> dict:
         """Delete an employee"""
         employee = await self.get_employee_by_id(employee_id, session)
         if not employee:
@@ -90,9 +84,10 @@ class EmployeeService:
         
         await session.delete(employee)
         await session.commit()
+        return {"message": "Employee deleted successfully"}
 
-    async def get_count(self, session: AsyncSession) -> int:
+    async def get_count(self, user_id: str, session: AsyncSession) -> dict:
         """Get total number of employees"""
         result = await session.execute(select(Employee))
         employees = result.scalars().all()
-        return len(employees)
+        return {"count": len(list(employees))}

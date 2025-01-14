@@ -8,6 +8,7 @@ from auth.utils import generate_password_hash
 
 class UserService:
     async def get_user_by_username(self, username: str, session: AsyncSession) -> User:
+        print("username: ", username)
         statement = select(User).where(User.username == username)
         result = await session.execute(statement)
         return result.scalar_one_or_none()

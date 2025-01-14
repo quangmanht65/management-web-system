@@ -16,14 +16,13 @@ access_token_bearer = AccessTokenBearer()
 role_checker = Depends(RoleChecker(["admin", "user"]))
 
 
-@employee_router.get("/", response_model=List[Employee], dependencies=[role_checker])                     
+@employee_router.get("/", response_model=List[dict])
 async def get_all_employees(
     session: AsyncSession = Depends(get_session),
     _: dict = Depends(access_token_bearer),
-) -> List[Employee]:
+) -> List[dict]:
     """Get all employees"""
     employees = await employee_service.get_all_employees(session)
-    
     return employees
 
 @employee_router.post("/",
@@ -34,19 +33,11 @@ async def get_all_employees(
 async def create_employee(
     employee_data: EmployeeCreate,
     session: AsyncSession = Depends(get_session),
+    token_details: dict = Depends(access_token_bearer)
 ):
     """Create a new employee"""
-
-    employee_exists = await employee_service.employee_exists(employee_data.EmployeeID, session)
-
-    if employee_exists:
-        raise EmployeeAlreadyExists()
-    new_employee = await employee_service.create_employee(employee_data, session)
-
-    return {
-        "message": "Employee created successfully",
-        "employee": new_employee
-    }
+    user_id = token_details.get("user")["uid"]
+    return await employee_service.create_employee(employee_data, user_id, session)
 
 @employee_router.get("/{employee_id}", response_model=Employee, dependencies=[role_checker])
 async def get_employee_by_id(
@@ -56,7 +47,8 @@ async def get_employee_by_id(
 ) -> Employee:
     """Get employee by ID"""
     employee = await employee_service.get_employee_by_id(employee_id, session)
-    return employee
+    
+    return employee if employee else JSONResponse(content={"message": "Employee not found"}, status_code=status.HTTP_404_NOT_FOUND)
 
 @employee_router.patch("/{employee_id}", response_model=Employee, dependencies=[role_checker])
 async def update_employee(
@@ -66,31 +58,23 @@ async def update_employee(
     _: dict = Depends(access_token_bearer),
 ) -> Employee:
     """Update an employee"""
-
-    employee = await employee_service.get_employee_by_id(employee_id, session)
-
-    if not employee:
-        raise EmployeeNotFound()
-    
-    updated_employee = await employee_service.update_employee(employee_id, employee_data, session)
-
-    return updated_employee
+    return await employee_service.update_employee(employee_id, employee_data, session)
 
 @employee_router.delete("/{employee_id}", dependencies=[role_checker])
 async def delete_employee(
     employee_id: str,
     session: AsyncSession = Depends(get_session),
     _: dict = Depends(access_token_bearer),
-) -> None:
+) -> JSONResponse:
     """Delete an employee"""
-    await employee_service.delete_employee(employee_id, session)
-    return {"message": "Employee deleted successfully"}
+    result = await employee_service.delete_employee(employee_id, session)
+    return JSONResponse(content=result)
 
-@employee_router.get("/count", status_code=status.HTTP_200_OK)
+@employee_router.get("/count/", status_code=status.HTTP_200_OK, dependencies=[role_checker])
 async def get_employee_count(
     session: AsyncSession = Depends(get_session),
-    _: dict = Depends(AccessTokenBearer())
+    token_details: dict = Depends(access_token_bearer)
 ):
     """Get total number of employees"""
-    count = await employee_service.get_count(session)
-    return {"count": count}
+    user_id = token_details.get("user")["uid"]
+    return await employee_service.get_count(user_id, session)

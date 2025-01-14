@@ -15,11 +15,11 @@ department_service = DepartmentService()
 access_token_bearer = AccessTokenBearer()
 role_checker = Depends(RoleChecker(["admin", "user"]))
 
-@department_router.get("/", response_model=List[Department], dependencies=[role_checker])
+@department_router.get("/", response_model=List[dict], dependencies=[role_checker])
 async def get_all_departments(
     session: AsyncSession = Depends(get_session),
     _: dict = Depends(access_token_bearer),
-) -> List[Department]:
+) -> List[dict]:
     """Get all departments"""
     departments = await department_service.get_all_departments(session)
     return departments
@@ -32,19 +32,14 @@ async def get_all_departments(
 async def create_department(
     department_data: DepartmentCreate,
     session: AsyncSession = Depends(get_session),
+    token_details: dict = Depends(access_token_bearer)
 ):
     """Create a new department"""
-    department_exists = await department_service.department_exists(department_data.DepartmentID, session)
 
-    if department_exists:
-        raise DepartmentAlreadyExists()
-    
-    new_department = await department_service.create_department(department_data, session)
+    user_id = token_details.get("user")["uid"]
+    new_department = await department_service.create_department(department_data, user_id, session)
+    return new_department
 
-    return {
-        "message": "Department created successfully",
-        "department": new_department
-    }
 
 @department_router.get("/{department_id}", response_model=Department, dependencies=[role_checker])
 async def get_department_by_id(
@@ -79,7 +74,7 @@ async def delete_department(
     await department_service.delete_department(department_id, session)
     return JSONResponse(content={"message": "Department deleted successfully"})
 
-@department_router.get("/count", status_code=status.HTTP_200_OK)
+@department_router.get("/count/", status_code=status.HTTP_200_OK, dependencies=[role_checker])
 async def get_department_count(
     session: AsyncSession = Depends(get_session),
     _: dict = Depends(AccessTokenBearer())
