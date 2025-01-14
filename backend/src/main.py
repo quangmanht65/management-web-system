@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from employee.routes import employee_router
 from department.routes import department_router
 from position.routes import position_router
+from education.routes import education_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -52,4 +53,6 @@ app.include_router(employee_router, prefix=f"{version_prefix}/employee", tags=["
 app.include_router(department_router, prefix=f"{version_prefix}/department", tags=["department"])
 
 app.include_router(position_router, prefix=f"{version_prefix}/position", tags=["position"])
+
+app.include_router(education_router, prefix=f"{version_prefix}/education", tags=["education"])
 

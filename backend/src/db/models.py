@@ -113,3 +113,14 @@ class Employee(SQLModel, table=True):
 
     def __repr__(self):
         return f"<Employee {self.full_name}>"
+
+class Education(SQLModel, table=True):
+    __tablename__ = "education"
+    
+    id: Optional[int] = Field(default=None, primary_key=True)
+    employee_id: int = Field(foreign_key="employees.id")
+    degree_name: str
+    school: str
+    major: str
+    graduation_year: str
+    ranking: str
