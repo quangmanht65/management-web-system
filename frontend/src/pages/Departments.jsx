@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react'
-import { Plus } from 'react-feather'
 import { MainLayout } from '../components/Layout/MainLayout'
 import { PageHeader } from '../components/UI/PageHeader'
-import { DepartmentCard } from '../components/Department/DepartmentCard'
-import api from '../utils/axios'
-import toast from 'react-hot-toast'
+import { DepartmentTable } from '../components/Department/DepartmentTable'
+import { DepartmentToolbar } from '../components/Department/DepartmentToolbar'
 import { CreateDepartmentModal } from '../components/Department/CreateDepartmentModal'
+import { Card } from '../components/UI/Card'
+import toast from 'react-hot-toast'
+import api from '../utils/axios'
 
 export default function Departments() {
   const [departments, setDepartments] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
   useEffect(() => {
     fetchDepartments()
@@ -30,41 +31,66 @@ export default function Departments() {
     }
   }
 
+  const handleDelete = async (id) => {
+    try {
+      await api.delete(`/department/${id}`)
+      toast.success('Xóa phòng ban thành công')
+      fetchDepartments()
+    } catch (error) {
+      console.error('Error deleting department:', error)
+      toast.error('Không thể xóa phòng ban')
+    }
+  }
+
+  const handleEdit = async (id, data) => {
+    try {
+      await api.put(`/department/${id}`, data)
+      toast.success('Cập nhật phòng ban thành công')
+      fetchDepartments()
+    } catch (error) {
+      console.error('Error updating department:', error)
+      toast.error('Không thể cập nhật phòng ban')
+    }
+  }
+
+  const handleCreate = async (department) => {
+    try {
+      await api.post('/department/', department)
+      fetchDepartments()
+    } catch (error) {
+      console.error('Error creating department:', error)
+      toast.error('Không thể tạo phòng ban')
+    }
+  }
+
   return (
     <MainLayout>
-      <div className="flex justify-between items-center mb-6">
-        <PageHeader title="Phòng Ban" />
-        <button 
-          className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-          onClick={() => setIsCreateModalOpen(true)}
-        >
-          <Plus size={20} />
-          <span>Tạo mới phòng ban</span>
-        </button>
+      <div className="space-y-6">
+        <PageHeader 
+          title="Quản Lý Phòng Ban" 
+          subtitle="Quản lý thông tin và nhân sự các phòng ban"
+        />
+        
+        <Card>
+          <DepartmentToolbar 
+            onCreateClick={() => setShowCreateModal(true)}
+            onRefresh={fetchDepartments}
+            totalDepartments={departments.length}
+          />
+
+          <DepartmentTable 
+            departments={departments}
+            isLoading={isLoading}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
+          />
+        </Card>
       </div>
 
-      {isLoading ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="animate-pulse bg-white rounded-lg p-6 h-32" />
-          ))}
-        </div>
-      ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {departments.map(department => (
-            <DepartmentCard 
-              key={department.id}
-              department={department}
-              onUpdate={() => fetchDepartments()}
-            />
-          ))}
-        </div>
-      )}
-
-      <CreateDepartmentModal 
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={fetchDepartments}
+      <CreateDepartmentModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={handleCreate}
       />
     </MainLayout>
   )

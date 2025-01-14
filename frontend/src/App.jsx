@@ -7,9 +7,9 @@ import Positions from './pages/Positions'
 import Contracts from './pages/Contracts'
 import Payroll from './pages/Payroll'
 import Attendance from './pages/Attendance'
-import WorkingTime from './pages/WorkingTime'
 import Departments from './pages/Departments'
 import Settings from './pages/Settings'
+import Admin from './pages/Admin'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -25,9 +25,9 @@ function App() {
         <Route path="/contracts" element={<Contracts />} />
         <Route path="/payroll" element={<Payroll />} />
         <Route path="/attendance" element={<Attendance />} />
-        <Route path="/working-time" element={<WorkingTime />} />
         <Route path="/departments" element={<Departments />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
       <ToastContainer 

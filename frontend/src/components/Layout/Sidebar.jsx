@@ -45,13 +45,8 @@ const menuItems = [
   },
   {
     icon: Clock,
-    text: 'Danh sách chấm công',
+    text: 'Chấm công',
     to: '/attendance'
-  },
-  {
-    icon: Clock,
-    text: 'Thời gian công tác',
-    to: '/working-time'
   },
   {
     icon: Grid,
@@ -92,36 +87,35 @@ export function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 w-64 h-screen bg-[#2F6BFF] text-white flex flex-col">
-      <div className="p-6">
-        <h2 className="text-xl font-semibold">Quản lý nhân sự</h2>
-      </div>
+      <div className="flex flex-col h-full">
+        <div className="p-6">
+          <h2 className="text-xl font-semibold">Quản lý nhân sự</h2>
+        </div>
+        
+        <nav className="flex-1 p-4">
+          <ul className="space-y-2">
+            {menuItems.map((item) => (
+              <SidebarItem
+                key={item.to}
+                icon={item.icon}
+                text={item.text}
+                to={item.to}
+                isActive={location.pathname === item.to}
+              />
+            ))}
+          </ul>
+        </nav>
 
-      <div className="px-6 py-2 mb-6">
-        <p className="text-sm opacity-80">Xin chào,</p>
-        <p className="font-medium">{user.username}</p>
-      </div>
-
-      <nav className="flex-1 space-y-1">
-        {menuItems.map((item) => (
-          <SidebarItem
-            key={item.to}
-            icon={item.icon}
-            text={item.text}
-            to={item.to}
-            isActive={location.pathname === item.to}
-          />
-        ))}
-      </nav>
-
-      <div className="p-6">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-2 w-full text-sm text-white/80 
-                   hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-        >
-          <LogOut size={20} />
-          <span>Đăng xuất</span>
-        </button>
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-2 w-full text-sm text-white/80 
+                     hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+          >
+            <LogOut size={20} />
+            <span>Đăng xuất</span>
+          </button>
+        </div>
       </div>
     </aside>
   )
