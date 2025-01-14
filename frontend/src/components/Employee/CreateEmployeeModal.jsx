@@ -5,27 +5,26 @@ import toast from 'react-hot-toast'
 
 export function CreateEmployeeModal({ isOpen, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
-    employee_code: '',
-    position_id: 0,
-    department_id: 0,
-    salary: 1,
-    gender: 'Male',
-    contract_id: '',
-    full_name: '',
-    birth_date: '',
-    birth_place: '',
-    id_number: '',
-    phone: '',
-    address: '',
-    email: '',
-    marital_status: 'Single',
-    ethnicity: 'Kinh',
-    education_level_id: '',
-    id_card_date: '',
-    id_card_place: '',
-    health_insurance_number: '',
-    social_insurance_number: '',
-    profile_image_path: 'none_image_profile'
+    EmployeeID: '',
+    PositionID: '',
+    DepartmentID: '',
+    Salary: '',
+    Gender: 'Male',
+    ContractID: '',
+    EmployeeName: '',
+    DateOfBirth: '',
+    PlaceOfBirth: '',
+    IDNumber: '',
+    Phone: '',
+    Address: '',
+    Email: '',
+    MaritalStatus: 'Single',
+    Ethnicity: 'Kinh',
+    EducationLevelID: '',
+    IDCardDate: '',
+    IDCardPlace: '',
+    HealthInsurance: '',
+    SocialInsurance: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [positions, setPositions] = useState([])
@@ -57,41 +56,27 @@ export function CreateEmployeeModal({ isOpen, onClose, onSuccess }) {
 
   const parseFormData = (data) => {
     return {
-      ...data,
-      // Convert IDs to numbers
-      position_id: parseInt(data.position_id) || 0,
-      department_id: parseInt(data.department_id) || 0,
-      education_level_id: parseInt(data.education_level_id) || 0,
-      
-      // Convert salary to number
-      salary: parseFloat(data.salary) || 0,
-      
-      // Format dates to ISO string
-      birth_date: data.birth_date ? new Date(data.birth_date).toISOString().split('T')[0] : null,
-      id_card_date: data.id_card_date ? new Date(data.id_card_date).toISOString().split('T')[0] : null,
-      
-      // Ensure strings
-      employee_code: String(data.employee_code),
-      full_name: String(data.full_name),
-      birth_place: String(data.birth_place),
-      id_number: String(data.id_number),
-      phone: String(data.phone),
-      address: String(data.address),
-      email: String(data.email),
-      id_card_place: String(data.id_card_place),
-      health_insurance_number: String(data.health_insurance_number),
-      social_insurance_number: String(data.social_insurance_number),
-      
-      // Ensure valid gender value
-      gender: ['Male', 'Female'].includes(data.gender) ? data.gender : 'Male',
-      
-      // Ensure valid marital status
-      marital_status: ['Single', 'Married'].includes(data.marital_status) ? data.marital_status : 'Single',
-      
-      // Default values for optional fields
-      contract_id: data.contract_id || null,
-      ethnicity: data.ethnicity || 'Kinh',
-      profile_image_path: data.profile_image_path || 'none_image_profile'
+      employee_code: data.EmployeeID || '',
+      position_id: parseInt(data.PositionID) || 0,
+      department_id: parseInt(data.DepartmentID) || 0,
+      salary: parseFloat(data.Salary) || 0,
+      gender: data.Gender || 'Male',
+      contract_id: data.ContractID || null,
+      full_name: data.EmployeeName || '',
+      birth_date: data.DateOfBirth || null,
+      birth_place: data.PlaceOfBirth || '',
+      id_number: data.IDNumber || '',
+      phone: data.Phone || '',
+      address: data.Address || '',
+      email: data.Email || '',
+      marital_status: data.MaritalStatus || 'Single',
+      ethnicity: data.Ethnicity || 'Kinh',
+      education_level_id: data.EducationLevelID || '',
+      id_card_date: data.IDCardDate || null,
+      id_card_place: data.IDCardPlace || '',
+      health_insurance_number: data.HealthInsurance || '',
+      social_insurance_number: data.SocialInsurance || '',
+      profile_image_path: 'none_image_profile'
     }
   }
 
@@ -434,6 +419,22 @@ export function CreateEmployeeModal({ isOpen, onClose, onSuccess }) {
                 onChange={e => setFormData(prev => ({ 
                   ...prev, 
                   HealthInsurance: e.target.value 
+                }))}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Mã hợp đồng
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.ContractID}
+                onChange={e => setFormData(prev => ({ 
+                  ...prev, 
+                  ContractID: e.target.value 
                 }))}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />

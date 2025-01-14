@@ -1,11 +1,12 @@
-import { Eye, Edit } from 'react-feather'
+import { Eye, Edit, FileText } from 'react-feather'
 
 export function EmployeeTable({ 
   employees = [],
   isLoading,
   selectedEmployees,
   onSelectEmployees,
-  itemsPerPage
+  itemsPerPage,
+  onViewEducation
 }) {
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -108,6 +109,13 @@ export function EmployeeTable({
                   </button>
                   <button className="p-1 text-gray-500 hover:bg-gray-100 rounded">
                     <Eye size={16} />
+                  </button>
+                  <button 
+                    onClick={() => onViewEducation(employee.id)}
+                    className="p-1 text-blue-500 hover:bg-blue-50 rounded"
+                    title="Xem trình độ học vấn"
+                  >
+                    <FileText size={16} />
                   </button>
                 </div>
               </td>

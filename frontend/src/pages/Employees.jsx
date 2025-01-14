@@ -4,6 +4,7 @@ import { PageHeader } from '../components/UI/PageHeader'
 import { EmployeeTable } from '../components/Employee/EmployeeTable'
 import { EmployeeToolbar } from '../components/Employee/EmployeeToolbar'
 import { CreateEmployeeModal } from '../components/Employee/CreateEmployeeModal'
+import { EducationLevelsModal } from '../components/Employee/EducationLevelsModal'
 import api from '../utils/axios'
 import toast from 'react-hot-toast'
 
@@ -16,6 +17,8 @@ function Employees() {
   const [searchQuery, setSearchQuery] = useState('')
   const [error, setError] = useState(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isEducationModalOpen, setIsEducationModalOpen] = useState(false)
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null)
 
   useEffect(() => {
     fetchEmployees()
@@ -55,6 +58,11 @@ function Employees() {
     emp.phone?.includes(searchQuery)
   )
 
+  const handleViewEducation = (employeeId) => {
+    setSelectedEmployeeId(employeeId)
+    setIsEducationModalOpen(true)
+  }
+
   if (error) {
     return (
       <MainLayout>
@@ -81,6 +89,8 @@ function Employees() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onCreateClick={() => setIsCreateModalOpen(true)}
+        onViewEducationClick={() => setIsEducationModalOpen(true)}
+        employees={employees}
       />
 
       <EmployeeTable 
@@ -90,12 +100,22 @@ function Employees() {
         onSelectEmployees={setSelectedEmployees}
         itemsPerPage={itemsPerPage}
         onItemsPerPageChange={setItemsPerPage}
+        onViewEducation={handleViewEducation}
       />
 
       <CreateEmployeeModal 
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={fetchEmployees}
+      />
+
+      <EducationLevelsModal 
+        isOpen={isEducationModalOpen}
+        onClose={() => {
+          setIsEducationModalOpen(false)
+          setSelectedEmployeeId(null)
+        }}
+        employeeId={selectedEmployeeId}
       />
     </MainLayout>
   )

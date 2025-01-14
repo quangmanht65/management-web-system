@@ -1,12 +1,57 @@
 import { Plus, FileText, Download, Printer, File, RefreshCw, Trash2 } from 'react-feather'
+import { useState } from 'react'
+import { ImportEmployeeModal } from './ImportEmployeeModal'
+import { printEmployeeData } from '../../utils/printUtils'
+import { exportToExcel, exportToPDF } from '../../utils/exportUtils'
+import toast from 'react-hot-toast'
 
 export function EmployeeToolbar({ 
   selectedCount, 
   onRefresh,
   searchQuery,
   onSearchChange,
-  onCreateClick
+  onCreateClick,
+  onViewEducationClick,
+  employees
 }) {
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
+
+  const handlePrint = () => {
+    if (!employees || employees.length === 0) {
+      toast.error('Không có dữ liệu để in')
+      return
+    }
+    printEmployeeData(employees)
+  }
+
+  const handleExportExcel = () => {
+    if (!employees || employees.length === 0) {
+      toast.error('Không có dữ liệu để xuất')
+      return
+    }
+    try {
+      exportToExcel(employees)
+      toast.success('Xuất file Excel thành công')
+    } catch (error) {
+      console.error('Error exporting to Excel:', error)
+      toast.error('Có lỗi xảy ra khi xuất file Excel')
+    }
+  }
+
+  const handleExportPDF = () => {
+    if (!employees || employees.length === 0) {
+      toast.error('Không có dữ liệu để xuất')
+      return
+    }
+    try {
+      exportToPDF(employees)
+      toast.success('Xuất file PDF thành công')
+    } catch (error) {
+      console.error('Error exporting to PDF:', error)
+      toast.error('Có lỗi xảy ra khi xuất file PDF')
+    }
+  }
+
   return (
     <div className="mb-6 space-y-4">
       <div className="flex flex-wrap gap-3">
@@ -18,27 +63,42 @@ export function EmployeeToolbar({
           <span>Tạo mới nhân viên</span>
         </button>
 
-        <button className="flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+        <button 
+          onClick={onViewEducationClick}
+          className="flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+        >
           <FileText size={20} />
           <span>Xem các trình độ học vấn</span>
         </button>
 
-        <button className="flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+        <button 
+          onClick={() => setIsImportModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+        >
           <Download size={20} />
           <span>Tải từ file</span>
         </button>
 
-        <button className="flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+        <button 
+          onClick={handlePrint}
+          className="flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+        >
           <Printer size={20} />
           <span>In dữ liệu</span>
         </button>
 
-        <button className="flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+        <button 
+          onClick={handleExportExcel}
+          className="flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+        >
           <File size={20} />
           <span>Xuất Excel</span>
         </button>
 
-        <button className="flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+        <button 
+          onClick={handleExportPDF}
+          className="flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+        >
           <File size={20} />
           <span>Xuất PDF</span>
         </button>
@@ -79,6 +139,12 @@ export function EmployeeToolbar({
           />
         </div>
       </div>
+
+      <ImportEmployeeModal 
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={onRefresh}
+      />
     </div>
   )
 } 
