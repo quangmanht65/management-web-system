@@ -1,5 +1,5 @@
 import uuid
-from sqlmodel import select
+from sqlmodel import select, update
 from sqlmodel.ext.asyncio.session import AsyncSession
 from typing import List
 from fastapi import HTTPException, status
@@ -73,3 +73,17 @@ class UserService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to fetch users"
             )
+
+    async def update_password(self, user_id: str, new_password_hash: str, session: AsyncSession):
+        """Update user password"""
+        try:
+            statement = (
+                update(User)
+                .where(User.uid == user_id)
+                .values(password_hash=new_password_hash)
+            )
+            await session.execute(statement)
+            await session.commit()
+        except Exception as e:
+            await session.rollback()
+            raise e

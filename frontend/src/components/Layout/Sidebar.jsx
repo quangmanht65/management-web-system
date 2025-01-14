@@ -12,12 +12,7 @@ import {
   Grid
 } from 'react-feather'
 
-const menuItems = [
-  {
-    icon: Users,
-    text: 'Quản lý',
-    to: '/admin'
-  },
+const baseMenuItems = [
   {
     icon: BarChart2,
     text: 'Bảng điều khiển',
@@ -60,6 +55,12 @@ const menuItems = [
   }
 ]
 
+const adminMenuItem = {
+  icon: Users,
+  text: 'Quản lý',
+  to: '/admin'
+};
+
 function SidebarItem({ icon: Icon, text, to, isActive }) {
   return (
     <Link
@@ -79,6 +80,10 @@ export function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const user = JSON.parse(localStorage.getItem('user') || '{}')
+
+  const menuItems = user?.role === 'admin' 
+    ? [adminMenuItem, ...baseMenuItems]
+    : baseMenuItems;
 
   const handleLogout = () => {
     localStorage.clear()

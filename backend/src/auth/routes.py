@@ -171,3 +171,35 @@ async def toggle_user_verify(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
+
+@auth_router.post("/change-password")
+async def change_password(
+    password_data: dict,
+    session: AsyncSession = Depends(get_session),
+    current_user: dict = Depends(access_token_bearer)
+):
+    """Change user password"""
+    try:
+        user_id = current_user.get("user")["uid"]
+        current_password = password_data.get("current_password")
+        new_password = password_data.get("new_password")
+        
+        # Verify current password
+        user = await user_service.get_user_by_id(user_id, session)
+        if not verify_password(current_password, user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Mật khẩu hiện tại không đúng"
+            )
+        
+        # Update password
+        hashed_password = get_password_hash(new_password)
+        await user_service.update_password(user_id, hashed_password, session)
+        
+        return {"message": "Đổi mật khẩu thành công"}
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )

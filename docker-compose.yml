@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: docker/Dockerfile
+    container_name: hrm-frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8000/api/v1
+    networks:
+      - hrm-network
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile
+    container_name: hrm-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=mysql+asyncmy://user:password@db:3306/hrm
+      - JWT_SECRET=your_jwt_secret_here
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - REFRESH_TOKEN_EXPIRE_DAYS=7
+    networks:
+      - hrm-network
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: hrm-db
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=hrm
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=rootpassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - hrm-network
+
+networks:
+  hrm-network:
+    driver: bridge
+
+volumes:
+  mysql_data: 

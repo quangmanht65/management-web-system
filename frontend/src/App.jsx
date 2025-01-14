@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AdminRoute } from './components/Auth/AdminRoute'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import ForgotPassword from './pages/ForgotPassword'
@@ -27,7 +28,14 @@ function App() {
         <Route path="/attendance" element={<Attendance />} />
         <Route path="/departments" element={<Departments />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route 
+          path="/admin" 
+          element={
+            <AdminRoute>
+              <Admin />
+            </AdminRoute>
+          } 
+        />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
       <ToastContainer 
