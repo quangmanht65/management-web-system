@@ -16,7 +16,7 @@ done
 echo "Redis is ready!"
 
 # Run migrations
-python -m alembic upgrade head
+# python -m alembic upgrade head
 
 # Start the application
-cd /app && python -m uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload 
+cd /app/src && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload

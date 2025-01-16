@@ -35,3 +35,6 @@ class Settings(BaseSettings):
         case_sensitive = True
 
 settings = Settings()
+
+# For backwards compatibility
+Config = Settings
