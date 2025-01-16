@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AdminRoute } from './components/Auth/AdminRoute'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -16,40 +17,42 @@ import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/employees" element={<Employees />} />
-        <Route path="/positions" element={<Positions />} />
-        <Route path="/contracts" element={<Contracts />} />
-        <Route path="/payroll" element={<Payroll />} />
-        <Route path="/attendance" element={<Attendance />} />
-        <Route path="/departments" element={<Departments />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route 
-          path="/admin" 
-          element={
-            <AdminRoute>
-              <Admin />
-            </AdminRoute>
-          } 
+    <Router>
+      <div className="app">
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
         />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-      <ToastContainer 
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-    </BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/employees" element={<Employees />} />
+          <Route path="/positions" element={<Positions />} />
+          <Route path="/contracts" element={<Contracts />} />
+          <Route path="/payroll" element={<Payroll />} />
+          <Route path="/attendance" element={<Attendance />} />
+          <Route path="/departments" element={<Departments />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route 
+            path="/admin" 
+            element={
+              <AdminRoute>
+                <Admin />
+              </AdminRoute>
+            } 
+          />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </div>
+    </Router>
   )
 }
 

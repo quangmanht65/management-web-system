@@ -1,10 +1,10 @@
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from typing import List
+from typing import List, Optional
 
 from db.models import Position
 from position.schemas import PositionCreate, PositionUpdate
-from errors import PositionNotFound
+from errors.position_errors import PositionNotFound, PositionAlreadyExists
 
 class PositionService:
     async def create_position(self, position_data: PositionCreate, session: AsyncSession) -> Position:

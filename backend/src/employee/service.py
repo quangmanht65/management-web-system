@@ -6,7 +6,7 @@ from fastapi import HTTPException, status
 
 from db.models import Employee, Position, Department, Contract
 from employee.schemas import EmployeeCreate, EmployeeUpdateModel, ContractCreate, ContractUpdate
-from errors import EmployeeNotFound, ContractNotFound
+from errors.employee_errors import EmployeeNotFound, ContractNotFound
 
 class EmployeeService:
     async def create_employee(self, employee_data: EmployeeCreate, uid: str, session: AsyncSession) -> Employee:

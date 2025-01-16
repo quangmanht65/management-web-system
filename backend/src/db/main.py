@@ -2,13 +2,15 @@ from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel, create_engine
+import logging
 
-from config import Config
+from config import settings
 
 async_engine = AsyncEngine(
     create_engine(
-        url=Config.DATABASE_URL,
-        echo=True
+        url=settings.DATABASE_URL,
+        echo=True,
+        future=True
     )
 )
 
@@ -24,4 +26,11 @@ async def get_session() -> AsyncSession:
     )
 
     async with Session() as session:
-        yield session   
+        try:
+            yield session
+        except Exception as e:
+            logging.error(f"Database session error: {str(e)}")
+            await session.rollback()
+            raise
+        finally:
+            await session.close()   

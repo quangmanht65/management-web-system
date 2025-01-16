@@ -14,7 +14,7 @@ from employee.schemas import (
     PositionRead
 )
 from employee.service import EmployeeService
-from errors import EmployeeAlreadyExists, EmployeeNotFound
+from errors.employee_errors import EmployeeAlreadyExists, EmployeeNotFound
 from db.models import Employee, Position
 from auth.dependencies import AccessTokenBearer, RoleChecker
 

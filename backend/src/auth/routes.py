@@ -6,13 +6,18 @@ from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from auth.service import UserService
-from auth.utils import create_access_token, verify_password, create_url_safe_token, decode_url_safe_token
+from auth.utils import (
+    create_access_token, 
+    verify_password, 
+    create_url_safe_token, 
+    decode_url_safe_token,
+    generate_password_hash
+)
 from auth.schemas import UserCreateModel, LoginModel, MailModel
 from db.main import get_session
-from errors import InvalidCredentials, UserAlreadyExists, UserNotFound, InvalidToken
-from .dependencies import RefreshTokenBearer, AccessTokenBearer
-from config import Config
-from auth.dependencies import RoleChecker
+from errors.auth_errors import InvalidCredentials, UserAlreadyExists, UserNotFound, InvalidToken
+from .dependencies import RefreshTokenBearer, AccessTokenBearer, RoleChecker
+from config import settings
 
 auth_router = APIRouter()
 user_service = UserService()
@@ -40,7 +45,7 @@ async def create_user_account(
 
     # token = create_url_safe_token({"username": username})
 
-    # link = f"http://{Config.DOMAIN}/api/v1/auth/verify?token={token}"
+    # link = f"http://{settings.DOMAIN}/api/v1/auth/verify?token={token}"
 
     # html = f"""
     # <h1> verify your account </h1>
@@ -193,7 +198,7 @@ async def change_password(
             )
         
         # Update password
-        hashed_password = get_password_hash(new_password)
+        hashed_password = generate_password_hash(new_password)
         await user_service.update_password(user_id, hashed_password, session)
         
         return {"message": "Đổi mật khẩu thành công"}

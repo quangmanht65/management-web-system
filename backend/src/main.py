@@ -1,19 +1,22 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from auth.routes import auth_router
-from db.main import init_db
-from middleware import register_middleware
-from errors import register_all_errors
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
+
+# Import routes
+from auth.routes import auth_router
 from employee.routes import employee_router
 from department.routes import department_router
 from position.routes import position_router
 from education.routes import education_router
-from errors import PayrollNotFound, AttendanceNotFound
-from fastapi import Request
-from fastapi.responses import JSONResponse
 from payroll.routes import payroll_router
 from attendance.routes import attendance_router
+
+# Import utilities and config
+from db.main import init_db
+from middleware.middleware import register_middleware
+from config import settings
+from errors import register_all_errors, PayrollNotFound, AttendanceNotFound
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -50,10 +53,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Your frontend URL
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+    allow_methods=settings.CORS_ALLOW_METHODS,
+    allow_headers=settings.CORS_ALLOW_HEADERS,
+    expose_headers=["*"]
 )
 
 register_middleware(app)

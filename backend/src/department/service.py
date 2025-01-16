@@ -1,9 +1,9 @@
 from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
-from typing import List
+from typing import List, Optional
 from db.models import Department, Employee
 from department.schemas import DepartmentCreate, DepartmentUpdateModel
-from errors import DepartmentNotFound
+from errors.department_errors import DepartmentNotFound, DepartmentAlreadyExists
 from fastapi import HTTPException, status
 
 class DepartmentService:

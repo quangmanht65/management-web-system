@@ -1,62 +1,78 @@
 version: '3.8'
 
 services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mysql+asyncmy://root:voithan@db:3306/test
+      - JWT_SECRET=e59f21fa55866105eb0ce26344445ed1f2888b4025def9571d39d59cae67ed72
+      - JWT_ALGORITHM=HS256
+      - JWT_EXPIRATION=86400
+      - JWT_REFRESH_EXPIRATION=604800
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+
   frontend:
     build:
       context: ./frontend
-      dockerfile: docker/Dockerfile
-    container_name: hrm-frontend
+      dockerfile: Dockerfile
     ports:
-      - "3000:80"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - "5173:5173"
     environment:
-      - NODE_ENV=development
       - VITE_API_URL=http://localhost:8000/api/v1
-    networks:
-      - hrm-network
     depends_on:
       - backend
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: docker/Dockerfile
-    container_name: hrm-backend
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./backend:/app
-    environment:
-      - DATABASE_URL=mysql+asyncmy://user:password@db:3306/hrm
-      - JWT_SECRET=your_jwt_secret_here
-      - JWT_ALGORITHM=HS256
-      - ACCESS_TOKEN_EXPIRE_MINUTES=30
-      - REFRESH_TOKEN_EXPIRE_DAYS=7
     networks:
-      - hrm-network
-    depends_on:
-      - db
+      - app-network
 
   db:
     image: mysql:8.0
-    container_name: hrm-db
     ports:
       - "3306:3306"
     environment:
-      - MYSQL_DATABASE=hrm
-      - MYSQL_USER=user
-      - MYSQL_PASSWORD=password
-      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_ROOT_PASSWORD=voithan
+      - MYSQL_DATABASE=test
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
     networks:
-      - hrm-network
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-networks:
-  hrm-network:
-    driver: bridge
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass 123456
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  mysql_data: 
+  mysql-data:
+  redis-data:
+
+networks:
+  app-network:
+    driver: bridge 
