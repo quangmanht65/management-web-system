@@ -5,6 +5,7 @@ import { EmployeeTable } from '../components/Employee/EmployeeTable'
 import { EmployeeToolbar } from '../components/Employee/EmployeeToolbar'
 import { CreateEmployeeModal } from '../components/Employee/CreateEmployeeModal'
 import { EducationLevelsModal } from '../components/Employee/EducationLevelsModal'
+import { EditEmployeeModal } from '../components/Employee/EditEmployeeModal'
 import api from '../utils/axios'
 import toast from 'react-hot-toast'
 
@@ -19,6 +20,11 @@ function Employees() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEducationModalOpen, setIsEducationModalOpen] = useState(false)
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null)
+  const [filters, setFilters] = useState({
+    showHidden: false
+  })
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedEmployee, setSelectedEmployee] = useState(null)
 
   useEffect(() => {
     fetchEmployees()
@@ -51,16 +57,54 @@ function Employees() {
     }
   }
 
-  // Filter employees based on search query
-  const filteredEmployees = employees.filter(emp => 
-    emp.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.employee_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.phone?.includes(searchQuery)
-  )
+  // Filter employees based on search query and filters
+  const filteredEmployees = employees.filter(emp => {
+    const matchesSearch = 
+      emp.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.employee_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.phone?.includes(searchQuery)
+
+    const matchesHidden = filters.showHidden || !emp.is_hidden
+    
+    return matchesSearch && matchesHidden
+  })
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(prev => ({
+      ...prev,
+      ...newFilters
+    }))
+  }
 
   const handleViewEducation = (employeeId) => {
     setSelectedEmployeeId(employeeId)
     setIsEducationModalOpen(true)
+  }
+
+  const handleEditEmployee = (employee) => {
+    setSelectedEmployee(employee)
+    setIsEditModalOpen(true)
+  }
+
+  const handleToggleHide = async (employeeId) => {
+    try {
+      const employee = employees.find(emp => emp.id === employeeId)
+      if (!employee) return
+
+      await api.patch(`/employee/${employeeId}/toggle-hide/`)
+      
+      toast.success(
+        employee.is_hidden 
+          ? 'Đã hiện nhân viên' 
+          : 'Đã ẩn nhân viên'
+      )
+      
+      // Refresh the employee list
+      fetchEmployees()
+    } catch (error) {
+      console.error('Error toggling employee visibility:', error)
+      toast.error('Không thể thay đổi trạng thái hiển thị của nhân viên')
+    }
   }
 
   if (error) {
@@ -91,6 +135,7 @@ function Employees() {
         onCreateClick={() => setIsCreateModalOpen(true)}
         onViewEducationClick={() => setIsEducationModalOpen(true)}
         employees={employees}
+        onFilterChange={handleFilterChange}
       />
 
       <EmployeeTable 
@@ -101,12 +146,24 @@ function Employees() {
         itemsPerPage={itemsPerPage}
         onItemsPerPageChange={setItemsPerPage}
         onViewEducation={handleViewEducation}
+        onEditEmployee={handleEditEmployee}
+        onToggleHide={handleToggleHide}
       />
 
       <CreateEmployeeModal 
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={fetchEmployees}
+      />
+
+      <EditEmployeeModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setSelectedEmployee(null)
+        }}
+        onSuccess={fetchEmployees}
+        employeeData={selectedEmployee}
       />
 
       <EducationLevelsModal 

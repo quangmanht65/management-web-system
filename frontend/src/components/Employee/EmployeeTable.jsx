@@ -6,7 +6,8 @@ export function EmployeeTable({
   selectedEmployees,
   onSelectEmployees,
   itemsPerPage,
-  onViewEducation
+  onViewEducation,
+  onEditEmployee
 }) {
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -104,7 +105,11 @@ export function EmployeeTable({
               <td className="px-4 py-3 text-sm">{employee.Department}</td>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <button className="p-1 text-red-500 hover:bg-red-50 rounded">
+                  <button 
+                    onClick={() => onEditEmployee(employee)}
+                    className="p-1 text-blue-500 hover:bg-blue-50 rounded"
+                    title="Chỉnh sửa"
+                  >
                     <Edit size={16} />
                   </button>
                   <button className="p-1 text-gray-500 hover:bg-gray-100 rounded">
