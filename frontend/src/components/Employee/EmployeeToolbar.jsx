@@ -12,9 +12,11 @@ export function EmployeeToolbar({
   onSearchChange,
   onCreateClick,
   onViewEducationClick,
-  employees
+  employees,
+  onFilterChange
 }) {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)
+  const [showHidden, setShowHidden] = useState(false)
 
   const handlePrint = () => {
     if (!employees || employees.length === 0) {
@@ -50,6 +52,11 @@ export function EmployeeToolbar({
       console.error('Error exporting to PDF:', error)
       toast.error('Có lỗi xảy ra khi xuất file PDF')
     }
+  }
+
+  const handleShowHiddenChange = (e) => {
+    setShowHidden(e.target.checked)
+    onFilterChange({ showHidden: e.target.checked })
   }
 
   return (
@@ -119,14 +126,29 @@ export function EmployeeToolbar({
       </div>
 
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">Hiện</span>
-          <select className="px-2 py-1 border rounded-lg">
-            <option value="10">10</option>
-            <option value="20">20</option>
-            <option value="50">50</option>
-          </select>
-          <span className="text-sm text-gray-500">dòng</span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">Hiện</span>
+            <select className="px-2 py-1 border rounded-lg">
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+            <span className="text-sm text-gray-500">dòng</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="showHidden"
+              checked={showHidden}
+              onChange={handleShowHiddenChange}
+              className="rounded border-gray-300"
+            />
+            <label htmlFor="showHidden" className="text-sm text-gray-600">
+              Hiện nhân viên đã ẩn
+            </label>
+          </div>
         </div>
 
         <div className="relative">

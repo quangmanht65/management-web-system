@@ -8,7 +8,8 @@ export function EmployeeTable({
   onSelectEmployees,
   itemsPerPage,
   onViewEducation,
-  onEditEmployee
+  onEditEmployee,
+  onViewDetails
 }) {
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -112,7 +113,11 @@ export function EmployeeTable({
                   >
                     <Edit size={16} />
                   </button>
-                  <button className="p-1 text-gray-500 hover:bg-gray-100 rounded">
+                  <button 
+                    onClick={() => onViewDetails(employee)}
+                    className="p-1 text-rose-400 hover:bg-rose-50 rounded"
+                    title="Xem chi tiết"
+                  >
                     <Eye size={16} />
                   </button>
                   <button 

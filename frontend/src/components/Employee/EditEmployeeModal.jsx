@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
+import toast from 'react-hot-toast'
 import { X, Upload } from 'react-feather'
 import api from '../../utils/axios'
-import toast from 'react-hot-toast'
 import { Avatar } from '../UI/Avatar'
 
 export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) {
@@ -104,7 +104,6 @@ export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) 
       id_card_place: data.IDCardPlace,
       health_insurance_number: data.HealthInsurance,
       social_insurance_number: data.SocialInsurance,
-      profile_image_path: employeeData.profile_image_path // Preserve the existing image path
     }
   }
 
@@ -135,29 +134,45 @@ export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) 
     try {
       setIsSubmitting(true)
       
-      const formData = new FormData()
       const parsedData = parseFormData(formData)
       
+      // If there's a new image, use FormData
       if (selectedImage) {
+        const formData = new FormData()
         formData.append('profile_image', selectedImage)
+        
+        // Add other form data
+        Object.entries(parsedData).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) {
+            formData.append(key, value)
+          }
+        })
+        
+        await api.patch(`/employee/${employeeData.id}/`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+      } else {
+        // If no new image, send JSON data
+        await api.patch(`/employee/${employeeData.id}/`, parsedData, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
       }
-      
-      Object.entries(parsedData).forEach(([key, value]) => {
-        formData.append(key, value)
-      })
-      
-      await api.patch(`/employee/${employeeData.id}/`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      })
       
       toast.success('Cập nhật nhân viên thành công')
       onSuccess()
       onClose()
     } catch (error) {
       console.error('Error updating employee:', error)
-      toast.error('Không thể cập nhật nhân viên: ' + (error.response?.data?.detail || error.message))
+      const errorMessage = error.response?.data?.detail 
+        ? Array.isArray(error.response.data.detail)
+          ? error.response.data.detail.map(e => e.msg).join(', ')
+          : error.response.data.detail
+        : error.message
+      toast.error('Không thể cập nhật nhân viên: ' + errorMessage)
     } finally {
       setIsSubmitting(false)
     }
