@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Dialog } from '@headlessui/react';
 import { X } from 'react-feather';
 import api from '../../utils/axios';
 
-export function CreateContractModal({ isOpen, onClose, onSubmit }) {
+export function EditContractModal({ isOpen, onClose, onSubmit, contract }) {
   const [employees, setEmployees] = useState([]);
   const [formData, setFormData] = useState({
     employeeId: '',
@@ -17,10 +16,20 @@ export function CreateContractModal({ isOpen, onClose, onSubmit }) {
   });
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && contract) {
+      setFormData({
+        employeeId: contract.employee_id,
+        employeeName: contract.employee_name,
+        contractType: contract.contract_type,
+        startDate: contract.start_date,
+        endDate: contract.end_date,
+        status: contract.status,
+        salary: contract.salary,
+        notes: contract.notes
+      });
       fetchEmployees();
     }
-  }, [isOpen]);
+  }, [isOpen, contract]);
 
   const fetchEmployees = async () => {
     try {
@@ -37,12 +46,12 @@ export function CreateContractModal({ isOpen, onClose, onSubmit }) {
     
     const contractData = {
       employee_id: Number(formData.employeeId),
-      employee_name: selectedEmployee?.full_name || '',
+      employee_name: selectedEmployee?.full_name || formData.employeeName,
       contract_type: formData.contractType,
       start_date: formData.startDate,
       end_date: formData.endDate,
       status: formData.status,
-      salary: formData.salary,
+      salary: Number(formData.salary),
       notes: formData.notes
     };
     
@@ -73,7 +82,7 @@ export function CreateContractModal({ isOpen, onClose, onSubmit }) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg w-full max-w-md">
         <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-medium">Tạo Hợp Đồng Mới</h2>
+          <h2 className="text-lg font-medium">Chỉnh Sửa Hợp Đồng</h2>
           <button 
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -205,7 +214,7 @@ export function CreateContractModal({ isOpen, onClose, onSubmit }) {
               type="submit"
               className="px-4 py-2 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-600"
             >
-              Tạo hợp đồng
+              Cập nhật
             </button>
           </div>
         </form>

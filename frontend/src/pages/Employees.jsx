@@ -44,7 +44,7 @@ function Employees() {
       // Transform data if needed
       const formattedEmployees = response.data.map(emp => ({
         ...emp,
-        gender: emp.gender === 'M' ? 'Nam' : 'Nữ'
+        gender: emp.gender === 'Male' ? 'Nam' : 'Nữ'
       }))
       
       setEmployees(formattedEmployees)

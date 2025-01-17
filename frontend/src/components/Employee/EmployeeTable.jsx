@@ -1,3 +1,4 @@
+import { Avatar } from '../UI/Avatar'
 import { Eye, Edit, FileText } from 'react-feather'
 
 export function EmployeeTable({ 
@@ -91,14 +92,13 @@ export function EmployeeTable({
               <td className="px-4 py-3 text-sm">{employee.employee_code}</td>
               <td className="px-4 py-3 text-sm">{employee.full_name}</td>
               <td className="px-4 py-3">
-                <img 
-                  src={employee.avatar_url || '/default-avatar.png'} 
+                <Avatar 
+                  src={employee.profile_image_path} 
                   alt={employee.full_name}
-                  className="w-10 h-10 rounded-full object-cover"
                 />
               </td>
               <td className="px-4 py-3 text-sm">{employee.address}</td>
-              <td className="px-4 py-3 text-sm">{formatDate(employee.date_of_birth)}</td>
+              <td className="px-4 py-3 text-sm">{formatDate(employee.birth_date)}</td>
               <td className="px-4 py-3 text-sm">{employee.gender}</td>
               <td className="px-4 py-3 text-sm">{employee.phone}</td>
               <td className="px-4 py-3 text-sm">{employee.Position}</td>

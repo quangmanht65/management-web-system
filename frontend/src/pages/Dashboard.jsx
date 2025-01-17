@@ -80,6 +80,14 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <div className="info-section flex-grow flex items-center justify-center min-h-[400px]">
+        <div className="slogan text-center">
+          <p className="text-3xl font-semibold text-gray-700 italic tracking-wide">
+            "Sống tử tế, làm ra hồn"
+          </p>
+        </div>
+      </div>
     </MainLayout>
   )
 } 

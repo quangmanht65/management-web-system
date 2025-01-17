@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { X } from 'react-feather'
-import api from '../../utils/axios'
 import toast from 'react-hot-toast'
+import { X, Upload } from 'react-feather'
+import api from '../../utils/axios'
+import { Avatar } from '../UI/Avatar'
 
 export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) {
   const [formData, setFormData] = useState({
@@ -30,6 +31,8 @@ export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) 
   const [positions, setPositions] = useState([])
   const [departments, setDepartments] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [imagePreview, setImagePreview] = useState(null)
+  const [selectedImage, setSelectedImage] = useState(null)
 
   useEffect(() => {
     if (isOpen && employeeData) {
@@ -39,10 +42,11 @@ export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) 
         PositionID: employeeData.position_id?.toString() || '',
         DepartmentID: employeeData.department_id?.toString() || '',
         Salary: employeeData.salary?.toString() || '',
-        Gender: employeeData.gender === 'Nam' ? 'M' : 'F',
+        // Convert display gender back to API format
+        Gender: employeeData.gender === 'Nam' ? 'Male' : 'Female',
         ContractID: employeeData.contract_id || '',
         EmployeeName: employeeData.full_name || '',
-        DateOfBirth: employeeData.date_of_birth ? new Date(employeeData.date_of_birth).toISOString().split('T')[0] : '',
+        DateOfBirth: employeeData.birth_date ? new Date(employeeData.birth_date).toISOString().split('T')[0] : '',
         PlaceOfBirth: employeeData.birth_place || '',
         IDNumber: employeeData.id_number || '',
         Phone: employeeData.phone || '',
@@ -57,6 +61,7 @@ export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) 
         SocialInsurance: employeeData.social_insurance_number || ''
       })
       fetchPositionsAndDepartments()
+      setImagePreview(employeeData.profile_image_path)
     }
   }, [isOpen, employeeData])
 
@@ -80,12 +85,12 @@ export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) 
   const parseFormData = (data) => {
     return {
       employee_code: data.EmployeeID,
+      full_name: data.EmployeeName,
       position_id: parseInt(data.PositionID) || 0,
       department_id: parseInt(data.DepartmentID) || 0,
       salary: parseFloat(data.Salary) || 0,
       gender: data.Gender,
       contract_id: data.ContractID,
-      full_name: data.EmployeeName,
       birth_date: data.DateOfBirth,
       birth_place: data.PlaceOfBirth,
       id_number: data.IDNumber,
@@ -98,7 +103,29 @@ export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) 
       id_card_date: data.IDCardDate,
       id_card_place: data.IDCardPlace,
       health_insurance_number: data.HealthInsurance,
-      social_insurance_number: data.SocialInsurance
+      social_insurance_number: data.SocialInsurance,
+    }
+  }
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Kích thước ảnh không được vượt quá 5MB')
+        return
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        toast.error('Vui lòng chọn file ảnh')
+        return
+      }
+
+      setSelectedImage(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result)
+      }
+      reader.readAsDataURL(file)
     }
   }
 
@@ -106,9 +133,34 @@ export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) 
     e.preventDefault()
     try {
       setIsSubmitting(true)
+      
       const parsedData = parseFormData(formData)
       
-      await api.patch(`/employee/${employeeData.id}/`, parsedData)
+      // If there's a new image, use FormData
+      if (selectedImage) {
+        const formData = new FormData()
+        formData.append('profile_image', selectedImage)
+        
+        // Add other form data
+        Object.entries(parsedData).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) {
+            formData.append(key, value)
+          }
+        })
+        
+        await api.patch(`/employee/${employeeData.id}/`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+      } else {
+        // If no new image, send JSON data
+        await api.patch(`/employee/${employeeData.id}/`, parsedData, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+      }
       
       toast.success('Cập nhật nhân viên thành công')
       onSuccess()
@@ -142,6 +194,33 @@ export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) 
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <div className="flex justify-center mb-6">
+            <div className="relative">
+              <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-full overflow-hidden flex items-center justify-center">
+                {!imagePreview ? (
+                  <div className="text-center">
+                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                    <span className="mt-2 block text-xs text-gray-600">
+                      Tải ảnh lên
+                    </span>
+                  </div>
+                ) : (
+                  <Avatar 
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-32 h-32"
+                  />
+                )}
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -187,8 +266,9 @@ export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) 
                 }))}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="M">Nam</option>
-                <option value="F">Nữ</option>
+                <option value="Male">Nam</option>
+                <option value="Female">Nữ</option>
+                <option value="Other">Khác</option>
               </select>
             </div>
 
@@ -465,7 +545,7 @@ export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) 
               />
             </div>
           </div>
-
+          
           <div className="flex justify-end gap-3">
             <button
               type="button"
