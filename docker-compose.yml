@@ -69,6 +69,16 @@ services:
       timeout: 5s
       retries: 5
 
+  adminer:
+    image: adminer:4.8.1
+    volumes:
+      - ./data/adminer/adminer.sql:/var/www/html/adminer.sql:ro
+      - ./data/adminer/adminer.sql.gz:/var/www/html/adminer.sql.gz:ro
+    ports:
+      - "8888:8080"
+    networks:
+      - app-network
+
 volumes:
   mysql-data:
   redis-data:
