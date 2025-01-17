@@ -48,9 +48,20 @@ const deleteContract = async (contractId) => {
   }
 };
 
-const updateContract = async (contractId, contractData) => {
+const updateContract = async (contractId, formData) => {
   try {
-    const response = await api.put(`/employee/contracts/${contractId}`, contractData);
+    const payload = {
+      employee_id: Number(formData.employee_id),
+      employee_name: formData.employee_name,
+      contract_type: formData.contract_type,
+      start_date: formData.start_date,
+      end_date: formData.end_date,
+      status: formData.status,
+      salary: Number(formData.salary),
+      notes: formData.notes
+    };
+
+    const response = await api.put(`/employee/contracts/${contractId}`, payload);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;

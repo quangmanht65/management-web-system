@@ -68,7 +68,14 @@ class ContractCreate(ContractBase):
     updated_at: Optional[datetime] = Field(default=None)
 
 class ContractUpdate(ContractBase):
-    pass
+    employee_id: Optional[int] = Field(None, gt=0)
+    employee_name: Optional[str] = Field(None, min_length=1, max_length=50)   
+    contract_type: Optional[str] = Field(None, max_length=50)
+    start_date: Optional[date] = None 
+    end_date: Optional[date] = None
+    status: Optional[str] = Field(None, max_length=20)
+    salary: Optional[float] = Field(None, gt=0)
+    notes: Optional[str] = Field(None, max_length=500)
 
 class ContractResponse(ContractBase):
     id: int

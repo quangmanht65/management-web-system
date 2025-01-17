@@ -6,7 +6,8 @@ export function ContractTable({
   selectedContracts,
   onSelectContracts,
   itemsPerPage,
-  onDelete
+  onDelete,
+  onEdit
 }) {
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -92,7 +93,10 @@ export function ContractTable({
               <td className="px-4 py-3 text-sm">{contract.notes}</td>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <button className="p-1 text-blue-500 hover:bg-blue-50 rounded">
+                  <button 
+                    onClick={() => onEdit(contract)}
+                    className="p-1 text-blue-500 hover:bg-blue-50 rounded"
+                  >
                     <Edit size={16} />
                   </button>
                   <button className="p-1 text-gray-500 hover:bg-gray-100 rounded">

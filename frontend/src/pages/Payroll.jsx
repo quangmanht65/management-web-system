@@ -3,6 +3,7 @@ import { MainLayout } from '../components/Layout/MainLayout';
 import { PageHeader } from '../components/UI/PageHeader';
 import { PayrollTable } from '../components/Payroll/PayrollTable';
 import { PayrollToolbar } from '../components/Payroll/PayrollToolbar';
+import { CreatePayrollModal } from '../components/Payroll/CreatePayrollModal';
 import toast from 'react-hot-toast';
 import api from '../utils/axios';
 
@@ -13,6 +14,7 @@ function Payroll() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     fetchPayrolls();
@@ -54,6 +56,10 @@ function Payroll() {
     payroll.employee_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleCreateClick = () => {
+    setIsCreateModalOpen(true);
+  };
+
   if (error) {
     return (
       <MainLayout>
@@ -79,6 +85,7 @@ function Payroll() {
         onRefresh={fetchPayrolls}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        onCreateClick={handleCreateClick}
         payrolls={payrolls}
       />
 
@@ -89,6 +96,12 @@ function Payroll() {
         onSelectPayrolls={setSelectedPayrolls}
         itemsPerPage={itemsPerPage}
         onDelete={handleDelete}
+      />
+
+      <CreatePayrollModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={fetchPayrolls}
       />
     </MainLayout>
   );

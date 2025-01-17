@@ -19,15 +19,10 @@ async def create_payroll(
     token_details: dict = Depends(access_token_bearer),
 ):
     """Create a new payroll record"""
-    try:
-        user_id = token_details.get("user")["uid"]
-        payroll_dict = await payroll_service.create_payroll(payroll_data, user_id, session)
-        return PayrollResponse(**payroll_dict)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
+    user_id = token_details.get("user")["uid"]
+    payroll_dict = await payroll_service.create_payroll(payroll_data, user_id, session)
+    return PayrollResponse(**payroll_dict)
+
 
 @payroll_router.get("/", response_model=List[PayrollResponse], dependencies=[role_checker])
 async def get_all_payrolls(

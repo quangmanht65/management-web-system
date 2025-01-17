@@ -4,6 +4,7 @@ import { PageHeader } from '../components/UI/PageHeader';
 import { ContractTable } from '../components/Contract/ContractTable';
 import { ContractToolbar } from '../components/Contract/ContractToolbar';
 import { CreateContractModal } from '../components/Contract/CreateContractModal';
+import { EditContractModal } from '../components/Contract/EditContractModal';
 import { contractService } from '../utils/contractService';
 import toast from 'react-hot-toast';
 
@@ -15,6 +16,8 @@ function Contracts() {
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedContract, setSelectedContract] = useState(null);
 
   useEffect(() => {
     fetchContracts();
@@ -64,6 +67,26 @@ function Contracts() {
     }
   };
 
+  const handleEdit = (contract) => {
+    setSelectedContract(contract);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateContract = async (contractData) => {
+    try {
+      setIsLoading(true);
+      await contractService.updateContract(selectedContract.id, contractData);
+      toast.success('Cập nhật hợp đồng thành công');
+      setIsEditModalOpen(false);
+      fetchContracts();
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi cập nhật hợp đồng');
+      console.error('Update error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Filter contracts based on search query
   const filteredContracts = contracts.filter(contract => 
     contract.id?.toString().includes(searchQuery.toLowerCase()) ||
@@ -107,12 +130,20 @@ function Contracts() {
         onSelectContracts={setSelectedContracts}
         itemsPerPage={itemsPerPage}
         onDelete={handleDelete}
+        onEdit={handleEdit}
       />
 
       <CreateContractModal 
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateContract}
+      />
+
+      <EditContractModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSubmit={handleUpdateContract}
+        contract={selectedContract}
       />
     </MainLayout>
   );

@@ -141,22 +141,28 @@ class EmployeeService:
         return contract
 
     async def update_contract(
-        self, contract_id: int, contract_data: ContractUpdate, session: AsyncSession
+        self, contract_id: int, contract_data: ContractUpdate, user_id: str, session: AsyncSession
     ) -> Contract:
         """Update a contract"""
         contract = await self.get_contract_by_id(contract_id, session)
-        
+        print("contract: ", contract)
         # Update fields
         for field, value in contract_data.model_dump(exclude_unset=True).items():
-            setattr(contract, field, value)
+            if field != 'employee_name':
+                setattr(contract, field, value)
         
         contract.updated_at = datetime.utcnow()
         session.add(contract)
         await session.commit()
         await session.refresh(contract)
-        return contract
+        result_dict = contract.__dict__
+        if '_sa_instance_state' in result_dict:
+            del result_dict['_sa_instance_state']
+        result_dict['employee_name'] = contract_data.employee_name
+        
+        return result_dict
 
-    async def delete_contract(self, contract_id: int, session: AsyncSession) -> dict:
+    async def delete_contract(self, contract_id: int, user_id: str, session: AsyncSession) -> dict:
         """Delete a contract"""
         contract = await self.get_contract_by_id(contract_id, session)
         
