@@ -87,7 +87,7 @@ async def get_employee_count(
     user_id = token_details.get("user")["uid"]
     return await employee_service.get_count(user_id, session)
 
-@employee_router.post("/contracts/", response_model=ContractResponse)
+@employee_router.post("/contracts/", response_model=ContractResponse, dependencies=[role_checker])
 async def create_contract(
     contract_data: ContractCreate,
     session: AsyncSession = Depends(get_session),

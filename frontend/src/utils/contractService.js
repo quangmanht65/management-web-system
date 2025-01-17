@@ -18,9 +18,21 @@ const getContractById = async (contractId) => {
   }
 };
 
-const createContract = async (contractData) => {
+const createContract = async (formData) => {
   try {
-    const response = await api.post('/employee/contracts', contractData);
+    // Backend expects snake_case keys
+    const payload = {
+      employee_id: Number(formData.employee_id),
+      employee_name: formData.employee_name,
+      contract_type: formData.contract_type,
+      start_date: formData.start_date,
+      end_date: formData.end_date,
+      status: formData.status,
+      salary: Number(formData.salary),
+      notes: formData.notes
+    };
+
+    const response = await api.post('/employee/contracts/', payload);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;

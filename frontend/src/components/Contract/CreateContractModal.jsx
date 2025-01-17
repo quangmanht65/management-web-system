@@ -7,6 +7,7 @@ export function CreateContractModal({ isOpen, onClose, onSubmit }) {
   const [employees, setEmployees] = useState([]);
   const [formData, setFormData] = useState({
     employeeId: '',
+    employeeName: '',
     contractType: '',
     startDate: '',
     endDate: '',
@@ -32,16 +33,38 @@ export function CreateContractModal({ isOpen, onClose, onSubmit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const selectedEmployee = employees.find(emp => emp.id === Number(formData.employeeId));
+    
+    const contractData = {
+      employee_id: Number(formData.employeeId),
+      employee_name: selectedEmployee?.full_name || '',
+      contract_type: formData.contractType,
+      start_date: formData.startDate,
+      end_date: formData.endDate,
+      status: formData.status,
+      salary: formData.salary,
+      notes: formData.notes
+    };
+    
+    onSubmit(contractData);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const finalValue = name === 'employeeId' ? Number(value) : value;
-    setFormData(prev => ({
-      ...prev,
-      [name]: finalValue
-    }));
+    
+    if (name === 'employeeId') {
+      const selectedEmployee = employees.find(emp => emp.id === Number(value));
+      setFormData(prev => ({
+        ...prev,
+        employeeId: Number(value),
+        employeeName: selectedEmployee?.full_name || ''
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   if (!isOpen) return null;

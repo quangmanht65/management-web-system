@@ -32,8 +32,8 @@ api.interceptors.response.use(
         if (!originalRequest) return Promise.reject(error);
 
         // If error is 401 and we haven't tried to refresh token yet
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
+        if (error.response?.status === 401 && !originalRequest.retry) {
+            originalRequest.retry = true;
 
             try {
                 const refreshToken = localStorage.getItem('refreshToken');
