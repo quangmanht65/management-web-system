@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { X } from 'react-feather'
+import { X, Upload } from 'react-feather'
 import api from '../../utils/axios'
 import toast from 'react-hot-toast'
+import { Avatar } from '../UI/Avatar'
 
 export function CreateEmployeeModal({ isOpen, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -30,6 +31,8 @@ export function CreateEmployeeModal({ isOpen, onClose, onSuccess }) {
   const [positions, setPositions] = useState([])
   const [departments, setDepartments] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [imagePreview, setImagePreview] = useState(null)
+  const [selectedImage, setSelectedImage] = useState(null)
 
   useEffect(() => {
     if (isOpen) {
@@ -80,16 +83,53 @@ export function CreateEmployeeModal({ isOpen, onClose, onSuccess }) {
     }
   }
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('Kích thước ảnh không được vượt quá 5MB')
+        return
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        toast.error('Vui lòng chọn file ảnh')
+        return
+      }
+
+      setSelectedImage(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
       setIsSubmitting(true)
       
-      // Parse form data before sending
+      // Create FormData to handle file upload
+      const formData = new FormData()
       const parsedData = parseFormData(formData)
-      console.log('Sending data:', parsedData)
       
-      await api.post('/employee/', parsedData)
+      // Add the image if selected
+      if (selectedImage) {
+        formData.append('profile_image', selectedImage)
+      }
+      
+      // Add other form data
+      Object.entries(parsedData).forEach(([key, value]) => {
+        formData.append(key, value)
+      })
+      
+      await api.post('/employee/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      
       toast.success('Tạo nhân viên thành công')
       onSuccess()
       onClose()
@@ -117,6 +157,33 @@ export function CreateEmployeeModal({ isOpen, onClose, onSuccess }) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <div className="flex justify-center mb-6">
+            <div className="relative">
+              <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-full overflow-hidden flex items-center justify-center">
+                {!imagePreview ? (
+                  <div className="text-center">
+                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                    <span className="mt-2 block text-xs text-gray-600">
+                      Tải ảnh lên
+                    </span>
+                  </div>
+                ) : (
+                  <Avatar 
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-32 h-32"
+                  />
+                )}
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
