@@ -87,7 +87,7 @@ async def get_employee_count(
     user_id = token_details.get("user")["uid"]
     return await employee_service.get_count(user_id, session)
 
-@employee_router.post("/contracts/", response_model=ContractResponse)
+@employee_router.post("/contracts/", response_model=ContractResponse, dependencies=[role_checker])
 async def create_contract(
     contract_data: ContractCreate,
     session: AsyncSession = Depends(get_session),
@@ -118,7 +118,7 @@ async def get_contract(
     user_id = token_details.get("user")["uid"]
     return await employee_service.get_contract_by_id(contract_id, user_id, session)
 
-@employee_router.put("/contracts/{contract_id}", response_model=ContractResponse)
+@employee_router.put("/contracts/{contract_id}", response_model=ContractResponse, dependencies=[role_checker])
 async def update_contract(
     contract_id: int,
     contract_data: ContractUpdate,

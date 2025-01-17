@@ -5,6 +5,7 @@ import { EmployeeTable } from '../components/Employee/EmployeeTable'
 import { EmployeeToolbar } from '../components/Employee/EmployeeToolbar'
 import { CreateEmployeeModal } from '../components/Employee/CreateEmployeeModal'
 import { EducationLevelsModal } from '../components/Employee/EducationLevelsModal'
+import { EditEmployeeModal } from '../components/Employee/EditEmployeeModal'
 import api from '../utils/axios'
 import toast from 'react-hot-toast'
 
@@ -19,6 +20,8 @@ function Employees() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEducationModalOpen, setIsEducationModalOpen] = useState(false)
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedEmployee, setSelectedEmployee] = useState(null)
 
   useEffect(() => {
     fetchEmployees()
@@ -38,7 +41,7 @@ function Employees() {
       // Transform data if needed
       const formattedEmployees = response.data.map(emp => ({
         ...emp,
-        gender: emp.gender === 'M' ? 'Nam' : 'Nữ'
+        gender: emp.gender === 'Male' ? 'Nam' : 'Nữ'
       }))
       
       setEmployees(formattedEmployees)
@@ -61,6 +64,11 @@ function Employees() {
   const handleViewEducation = (employeeId) => {
     setSelectedEmployeeId(employeeId)
     setIsEducationModalOpen(true)
+  }
+
+  const handleEditEmployee = (employee) => {
+    setSelectedEmployee(employee)
+    setIsEditModalOpen(true)
   }
 
   if (error) {
@@ -101,12 +109,23 @@ function Employees() {
         itemsPerPage={itemsPerPage}
         onItemsPerPageChange={setItemsPerPage}
         onViewEducation={handleViewEducation}
+        onEditEmployee={handleEditEmployee}
       />
 
       <CreateEmployeeModal 
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={fetchEmployees}
+      />
+
+      <EditEmployeeModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setSelectedEmployee(null)
+        }}
+        onSuccess={fetchEmployees}
+        employeeData={selectedEmployee}
       />
 
       <EducationLevelsModal 
