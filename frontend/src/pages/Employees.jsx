@@ -6,6 +6,7 @@ import { EmployeeToolbar } from '../components/Employee/EmployeeToolbar'
 import { CreateEmployeeModal } from '../components/Employee/CreateEmployeeModal'
 import { EducationLevelsModal } from '../components/Employee/EducationLevelsModal'
 import { EditEmployeeModal } from '../components/Employee/EditEmployeeModal'
+import { ViewEmployeeModal } from '../components/Employee/ViewEmployeeModal'
 import api from '../utils/axios'
 import toast from 'react-hot-toast'
 
@@ -25,6 +26,7 @@ function Employees() {
   })
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedEmployee, setSelectedEmployee] = useState(null)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
 
   useEffect(() => {
     fetchEmployees()
@@ -84,6 +86,11 @@ function Employees() {
   const handleEditEmployee = (employee) => {
     setSelectedEmployee(employee)
     setIsEditModalOpen(true)
+  }
+
+  const handleViewDetails = (employee) => {
+    setSelectedEmployee(employee)
+    setIsViewModalOpen(true)
   }
 
   const handleToggleHide = async (employeeId) => {
@@ -147,6 +154,7 @@ function Employees() {
         onItemsPerPageChange={setItemsPerPage}
         onViewEducation={handleViewEducation}
         onEditEmployee={handleEditEmployee}
+        onViewDetails={handleViewDetails}
         onToggleHide={handleToggleHide}
       />
 
@@ -173,6 +181,16 @@ function Employees() {
           setSelectedEmployeeId(null)
         }}
         employeeId={selectedEmployeeId}
+      />
+
+      <ViewEmployeeModal
+        isOpen={isViewModalOpen}
+        onClose={() => {
+          setIsViewModalOpen(false)
+          setSelectedEmployee(null)
+        }}
+        employee={selectedEmployee}
+        onSuccess={fetchEmployees}
       />
     </MainLayout>
   )
