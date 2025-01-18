@@ -2,11 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
-      args:
-        BUILDKIT_INLINE_CACHE: 1
+    image: nampham11062002/employee-backend:latest
     ports:
       - "8000:8000"
     environment:
@@ -25,9 +21,7 @@ services:
       - app-network
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: nampham11062002/employee-frontend:latest
     ports:
       - "5173:5173"
     environment:
