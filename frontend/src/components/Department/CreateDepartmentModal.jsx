@@ -3,7 +3,7 @@ import { X } from 'react-feather'
 import api from '../../utils/axios'
 import toast from 'react-hot-toast'
 
-export function CreateDepartmentModal({ isOpen, onClose, onSuccess }) {
+export function CreateDepartmentModal({ isOpen, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
     department_code: '',
     name: ''
@@ -16,8 +16,12 @@ export function CreateDepartmentModal({ isOpen, onClose, onSuccess }) {
       setIsSubmitting(true)
       await api.post('/department/', formData)
       toast.success('Tạo phòng ban thành công')
-      onSuccess()
+      onSubmit()
       onClose()
+      setFormData({
+        department_code: '',
+        name: ''
+      })
     } catch (error) {
       console.error('Error creating department:', error)
       toast.error('Không thể tạo phòng ban')

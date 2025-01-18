@@ -11,7 +11,7 @@ from auth.dependencies import AccessTokenBearer, RoleChecker
 position_router = APIRouter()
 position_service = PositionService()
 access_token_bearer = AccessTokenBearer()
-admin_checker = RoleChecker(["admin"])
+admin_checker = RoleChecker(["admin", "user"])
 
 @position_router.post("/", response_model=PositionRead, status_code=status.HTTP_201_CREATED)
 async def create_position(

@@ -88,7 +88,7 @@ export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) 
       full_name: data.EmployeeName,
       position_id: parseInt(data.PositionID) || 0,
       department_id: parseInt(data.DepartmentID) || 0,
-      salary: parseFloat(data.Salary) || 0,
+      salary: data.Salary ? parseFloat(data.Salary).toFixed(2) : "0.00",
       gender: data.Gender,
       contract_id: data.ContractID,
       birth_date: data.DateOfBirth,
@@ -486,13 +486,22 @@ export function EditEmployeeModal({ isOpen, onClose, onSuccess, employeeData }) 
               <input
                 type="number"
                 min="0"
-                step="100000"
+                step="0.01"
                 required
                 value={formData.Salary}
                 onChange={e => setFormData(prev => ({ 
                   ...prev, 
                   Salary: e.target.value 
                 }))}
+                onBlur={e => {
+                  const value = e.target.value
+                  if (value) {
+                    setFormData(prev => ({
+                      ...prev,
+                      Salary: parseFloat(value).toFixed(2)
+                    }))
+                  }
+                }}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
