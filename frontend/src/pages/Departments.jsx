@@ -56,7 +56,8 @@ export default function Departments() {
   const handleCreate = async (department) => {
     try {
       await api.post('/department/', department)
-      fetchDepartments()
+      toast.success('Tạo phòng ban thành công')
+      await fetchDepartments()
     } catch (error) {
       console.error('Error creating department:', error)
       toast.error('Không thể tạo phòng ban')
@@ -90,7 +91,10 @@ export default function Departments() {
       <CreateDepartmentModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onSubmit={handleCreate}
+        onSubmit={() => {
+          fetchDepartments()
+          setShowCreateModal(false)
+        }}
       />
     </MainLayout>
   )
