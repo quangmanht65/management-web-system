@@ -19,7 +19,13 @@ class PayrollCreate(PayrollBase):
     notes: Optional[str] = Field(default=None, max_length=500)
 
 class PayrollUpdate(PayrollBase):
-    pass
+    employee_name: Optional[str]
+    employee_id: Optional[int] = Field(gt=0)
+    month: Optional[date]
+    base_salary: Optional[float] = Field(gt=0)
+    allowance: Optional[float] = Field(ge=0)
+    deduction: Optional[float] = Field(ge=0)
+    notes: Optional[str] = Field(max_length=500)
 
 class PayrollResponse(PayrollBase):
     id: int
