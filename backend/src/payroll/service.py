@@ -95,13 +95,21 @@ class PayrollService:
         
         # Update fields
         for field, value in payroll_data.model_dump(exclude_unset=True).items():
-            setattr(payroll, field, value)
+            if field != 'employee_name':
+                setattr(payroll, field, value)
         
         payroll.updated_at = datetime.utcnow()
         session.add(payroll)
         await session.commit()
         await session.refresh(payroll)
-        return payroll
+        
+        result_dict = payroll.__dict__
+        if '_sa_instance_state' in result_dict:
+            del result_dict['_sa_instance_state']
+        result_dict['employee_name'] = payroll_data.employee_name
+        result_dict['net_salary'] = result_dict['base_salary'] + result_dict['allowance'] - result_dict['deduction']
+        
+        return result_dict
 
     async def delete_payroll(self, payroll_id: int, user_id: str, session: AsyncSession) -> dict:
         """Delete a payroll record"""

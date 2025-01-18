@@ -96,6 +96,7 @@ function Payroll() {
         onSelectPayrolls={setSelectedPayrolls}
         itemsPerPage={itemsPerPage}
         onDelete={handleDelete}
+        onRefresh={fetchPayrolls}
       />
 
       <CreatePayrollModal

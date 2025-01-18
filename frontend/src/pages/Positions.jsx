@@ -53,6 +53,20 @@ function Positions() {
     }
   };
 
+  const handleEdit = async (positionId, data) => {
+    try {
+      await api.patch(`/position/${positionId}/`, {
+        position_code: data.position_code,
+        title: data.title
+      });
+      toast.success('Cập nhật chức vụ thành công');
+      fetchPositions();
+    } catch (error) {
+      console.error('Edit error:', error);
+      toast.error('Có lỗi xảy ra khi cập nhật chức vụ');
+    }
+  };
+
   return (
     <MainLayout>
       <PageHeader title="Quản Lý Chức Vụ" />
@@ -66,6 +80,7 @@ function Positions() {
         positions={positions}
         isLoading={isLoading}
         onDelete={handleDelete}
+        onEdit={handleEdit}
       />
 
       <CreatePositionModal
