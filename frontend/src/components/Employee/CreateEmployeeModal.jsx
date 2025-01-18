@@ -59,14 +59,14 @@ export function CreateEmployeeModal({ isOpen, onClose, onSuccess }) {
 
   const parseFormData = (data) => {
     return {
-      employee_code: data.EmployeeID || '',
+      employee_code: data.EmployeeID,
+      full_name: data.EmployeeName,
       position_id: parseInt(data.PositionID) || 0,
       department_id: parseInt(data.DepartmentID) || 0,
-      salary: parseFloat(data.Salary) || 0,
+      salary: data.Salary ? parseFloat(data.Salary).toFixed(2) : "0.00",
       gender: data.Gender || 'Male',
-      contract_id: data.ContractID || null,
-      full_name: data.EmployeeName || '',
-      birth_date: data.DateOfBirth || null,
+      contract_id: data.ContractID || '',
+      birth_date: data.DateOfBirth || '',
       birth_place: data.PlaceOfBirth || '',
       id_number: data.IDNumber || '',
       phone: data.Phone || '',
@@ -74,8 +74,8 @@ export function CreateEmployeeModal({ isOpen, onClose, onSuccess }) {
       email: data.Email || '',
       marital_status: data.MaritalStatus || 'Single',
       ethnicity: data.Ethnicity || 'Kinh',
-      education_level_id: data.EducationLevelID || '',
-      id_card_date: data.IDCardDate || null,
+      education_level_id: data.EducationLevelID || null,
+      id_card_date: data.IDCardDate || '',
       id_card_place: data.IDCardPlace || '',
       health_insurance_number: data.HealthInsurance || '',
       social_insurance_number: data.SocialInsurance || '',
@@ -110,24 +110,50 @@ export function CreateEmployeeModal({ isOpen, onClose, onSuccess }) {
     try {
       setIsSubmitting(true)
       
-      // Create FormData to handle file upload
-      const formData = new FormData()
+      // Validate required fields
+      const requiredFields = ['EmployeeID', 'EmployeeName', 'Phone', 'Email']
+      const missingFields = requiredFields.filter(field => !formData[field])
+      
+      if (missingFields.length > 0) {
+        toast.error('Vui lòng điền đầy đủ thông tin bắt buộc')
+        return
+      }
+      
       const parsedData = parseFormData(formData)
+      
+      let requestData
       
       // Add the image if selected
       if (selectedImage) {
+        const formData = new FormData()
         formData.append('profile_image', selectedImage)
+        
+        // Add other form data
+        Object.entries(parsedData).forEach(([key, value]) => {
+          // Convert null values to empty strings for FormData
+          if (value === null || value === 'null') {
+            formData.append(key, '')
+          } else if (value !== undefined) {
+            formData.append(key, value)
+          }
+        })
+        
+        requestData = formData
+      } else {
+        // If no image, send JSON data
+        // Convert null values to empty strings for JSON
+        requestData = Object.fromEntries(
+          Object.entries(parsedData).map(([key, value]) => [
+            key,
+            value === null || value === 'null' ? '' : value
+          ])
+        )
       }
       
-      // Add other form data
-      Object.entries(parsedData).forEach(([key, value]) => {
-        formData.append(key, value)
-      })
-      
-      await api.post('/employee/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+      await api.post('/employee/', requestData, {
+        headers: selectedImage 
+          ? { 'Content-Type': 'multipart/form-data' }
+          : { 'Content-Type': 'application/json' }
       })
       
       toast.success('Tạo nhân viên thành công')
@@ -135,7 +161,12 @@ export function CreateEmployeeModal({ isOpen, onClose, onSuccess }) {
       onClose()
     } catch (error) {
       console.error('Error creating employee:', error)
-      toast.error('Không thể tạo nhân viên: ' + (error.response?.data?.detail || error.message))
+      const errorMessage = error.response?.data?.detail 
+        ? Array.isArray(error.response.data.detail)
+          ? error.response.data.detail.map(e => e.msg).join(', ')
+          : error.response.data.detail
+        : error.message
+      toast.error('Không thể tạo nhân viên: ' + errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -448,13 +479,22 @@ export function CreateEmployeeModal({ isOpen, onClose, onSuccess }) {
               <input
                 type="number"
                 min="0"
-                step="100000"
+                step="0.01"
                 required
                 value={formData.Salary}
                 onChange={e => setFormData(prev => ({ 
                   ...prev, 
                   Salary: e.target.value 
                 }))}
+                onBlur={e => {
+                  const value = e.target.value
+                  if (value) {
+                    setFormData(prev => ({
+                      ...prev,
+                      Salary: parseFloat(value).toFixed(2)
+                    }))
+                  }
+                }}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
